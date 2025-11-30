@@ -4,10 +4,15 @@ import { saveContent, fetchHistory, restoreSnapshot } from './db.js';
 import { render } from './renderer.js';
 import { ask } from './modal.js';
 import { openImageManager } from './imageManager.js'; 
+import { initHeaderEditor } from './headerEditor.js'; // Import the new file
 
 let editingIndex = null; 
 
+
+
 export function initToolbar() {
+
+
     
     // 1. ADD BUTTONS
     const actionsDiv = document.querySelector('.toolbar-actions');
@@ -21,6 +26,19 @@ export function initToolbar() {
         actionsDiv.insertBefore(btn, document.getElementById('btn-restore'));
         btn.addEventListener('click', openSectionsManager);
     }
+
+
+    // NEW: Header Editor Button
+    if (!document.getElementById('btn-edit-header')) {
+        const btn = document.createElement('button');
+        btn.id = 'btn-edit-header';
+        btn.innerHTML = '<i class="fas fa-paint-brush"></i> Header';
+        btn.style.background = '#607d8b'; // Blue-Grey
+        actionsDiv.insertBefore(btn, document.getElementById('btn-restore'));
+    }
+
+    // Initialize the logic
+    initHeaderEditor();
 
     if (!document.getElementById('btn-emergency')) {
         const btn = document.createElement('button');
@@ -154,7 +172,8 @@ function renderSectionsTable() {
     });
 
     const uniquePages = new Set(state.items.map(i => i.page || 'home'));
-    ['home', 'products', 'contact'].forEach(p => uniquePages.add(p));
+['home', 'services', 'gallery', 'contact'].forEach(p => uniquePages.add(p));
+    
     const pageOptions = Array.from(uniquePages).sort();
 
     sortedItems.forEach(item => {

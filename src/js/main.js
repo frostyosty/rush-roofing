@@ -7,28 +7,26 @@ import { initToolbar } from './toolbar.js';
 import { initEmailConfig, attachEmailListeners } from './email.js';
 import { STATIC_CONTENT } from './fallback/staticContent.js';
 import { initCarousel } from './carousel.js';
+// Import the generator
+import { generateHeaderSVG } from './headerEditor.js'; 
 
 let saveTimer;
 
 // --- GLOBAL IMAGE DEBUGGER ---
-// This listens for any "error" event on the page.
-// If it came from an <img> tag, we log the broken URL.
 window.addEventListener('error', (e) => {
     if (e.target.tagName === 'IMG') {
         console.error("❌ IMAGE FAILED TO LOAD:");
         console.error("   Source:", e.target.src);
         console.error("   Element ID:", e.target.id || '(No ID)');
-        
-        // Optional: Visual indicator for debugging
         e.target.style.border = "5px solid red";
     }
-}, true); // "true" ensures we catch the error during the capture phase
+}, true); 
 
 async function startApp() {
     console.log('Initializing Tweed Trading CMS...');
-    
+
     const startTime = Date.now();
-    const MIN_LOAD_TIME = 1000; // Keep spinner for at least 1s so it doesn't flash
+    const MIN_LOAD_TIME = 1000; 
 
     // --- DIMMING OBSERVER ---
     const toastObserver = new MutationObserver((mutations) => {
@@ -54,9 +52,7 @@ async function startApp() {
     try {
         // --- TIMEOUT REDUCED TO 4 SECONDS ---
         const fetchPromise = fetchContent();
-        
-        // 4 Second Limit: If network is slow/blocked, switch to Static Mode
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("Network Timeout (4s)")), 4000)
         );
 
@@ -66,8 +62,6 @@ async function startApp() {
 
     } catch (error) {
         console.warn("Switching to Static High-Fidelity Mode:", error.message);
-        
-        // LOAD STATIC CONTENT
         items = STATIC_CONTENT;
         isOfflineMode = true;
     }
@@ -75,17 +69,19 @@ async function startApp() {
     try {
         setItems(items);
         setupNavigation();
-        
-        render(); 
-        attachEmailListeners(); 
-        initCarousel(); 
 
-        // Only enable Editing tools if we are actually connected
-        // If we are using Static Content, saving won't work anyway, so why show tools?
-        // However, user might want to access "My Notes" which works offline.
-        initEditor(); 
-        initToolbar();
+        // 1. Initial Render
+        render(); 
         
+        // 2. Initial Header Render (Wrapped in helper)
+        renderGlobalHeader(); 
+        
+        attachEmailListeners();
+        initCarousel();
+
+        initEditor();
+        initToolbar();
+
         document.getElementById('maintenance-view').classList.add('hidden');
 
         // --- HIDE LOADING SCREEN ---
@@ -100,34 +96,36 @@ async function startApp() {
             }
         }, remainingTime);
 
-        // Optional: Show a subtle "Offline Mode" indicator if you want
         if (isOfflineMode) {
             console.log("App running in Offline / Static Mode");
         }
 
     } catch (criticalError) {
         console.error("CRITICAL FAILURE:", criticalError);
-        // If even the static content crashes, allow maintenance view
         const loader = document.getElementById('loading-view');
-        if(loader) loader.style.display = 'none';
+        if (loader) loader.style.display = 'none';
         triggerMaintenanceMode();
     }
 
     // --- AUTO-SAVE LISTENER ---
     document.addEventListener('app-render-request', () => {
-        // If Offline, we allow UI updates (re-sort etc) but disable Saving
+        // UI Updates
         state.items.sort((a, b) => (a.position || 0) - (b.position || 0));
         render();
+        
+        // 👇 CRITICAL: Re-render header here too (Handles History Restore)
+        renderGlobalHeader(); 
+        
         setupNavigation();
         initCarousel();
         import('./email.js').then(m => m.attachEmailListeners());
 
         if (isOfflineMode) {
-            console.log("Offline Mode: Changes are temporary and will not save to database.");
-            return; // STOP HERE
+            console.log("Offline Mode: Changes are temporary.");
+            return; 
         }
 
-        // Only save if Online
+        // Save Logic
         clearTimeout(saveTimer);
         saveTimer = setTimeout(async () => {
             console.log("Auto-saving...");
@@ -145,12 +143,28 @@ async function startApp() {
     });
 }
 
+// --- NEW HELPER FUNCTION ---
+function renderGlobalHeader() {
+    const headerConfig = state.items.find(i => i.type === 'header_config');
+    if (headerConfig && headerConfig.metadata) {
+        const svg = generateHeaderSVG(headerConfig.metadata);
+        const headerEl = document.getElementById('super-header');
+        if (headerEl) {
+            headerEl.innerHTML = svg;
+            headerEl.style.padding = '0';
+            headerEl.style.borderBottom = 'none';
+        }
+    }
+}
+
 function setupNavigation() {
     const navContainer = document.querySelector('.main-nav');
-    if(!navContainer) return;
-    
+    if (!navContainer) return;
+
     const pages = new Set(state.items.map(i => i.page || 'home'));
-    const orderedPages = ['home', 'products', 'contact'];
+    // Updated Ordered Pages for Rush Roofing
+    const orderedPages = ['home', 'services', 'gallery', 'contact'];
+
     pages.forEach(p => { if (!orderedPages.includes(p)) orderedPages.push(p); });
 
     navContainer.innerHTML = '';
@@ -158,10 +172,10 @@ function setupNavigation() {
     orderedPages.forEach(pageName => {
         const btn = document.createElement('button');
         btn.className = 'nav-btn';
-        if(pageName === (state.currentPage || 'home')) btn.classList.add('active');
+        if (pageName === (state.currentPage || 'home')) btn.classList.add('active');
         btn.setAttribute('data-page', pageName);
         btn.innerText = pageName.charAt(0).toUpperCase() + pageName.slice(1);
-        
+
         btn.addEventListener('click', () => {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
