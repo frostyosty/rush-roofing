@@ -10,22 +10,27 @@ let currentConfig = {
     mainText: 'RUSH ROOFING',
     subText: 'Quality Solutions Bay Wide',
     fontSize: 40,
-    pattern: 'none' // none, stripes, circle
+    pattern: 'none',
+    // Position Defaults (Center)
+    mainX: 50, mainY: 45,
+    subX: 50, subY: 70
 };
 
 export function initHeaderEditor() {
-    // 1. Setup Button Listener in Toolbar
     const btn = document.getElementById('btn-edit-header');
     if (btn) btn.onclick = openHeaderEditor;
 
-    // 2. Setup Modal Listeners
-    document.getElementById('header-bg-color').oninput = updatePreview;
-    document.getElementById('header-accent-color').oninput = updatePreview;
-    document.getElementById('header-text-color').oninput = updatePreview;
-    document.getElementById('header-main-text').oninput = updatePreview;
-    document.getElementById('header-sub-text').oninput = updatePreview;
-    document.getElementById('header-font-size').oninput = updatePreview;
-    document.getElementById('header-pattern').onchange = updatePreview;
+    // Attach Listeners to ALL inputs
+    const inputs = [
+        'header-bg-color', 'header-accent-color', 'header-text-color',
+        'header-main-text', 'header-sub-text', 'header-font-size', 'header-pattern',
+        'header-main-x', 'header-main-y', 'header-sub-x', 'header-sub-y'
+    ];
+
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.oninput = updatePreview; // oninput updates instantly while dragging
+    });
 
     document.getElementById('btn-save-header').onclick = saveHeaderConfig;
     document.getElementById('close-header-modal').onclick = () => {
@@ -34,13 +39,12 @@ export function initHeaderEditor() {
 }
 
 function openHeaderEditor() {
-    // Find existing config or use default
     const existing = state.items.find(i => i.type === 'header_config');
     if (existing && existing.metadata) {
         currentConfig = { ...currentConfig, ...existing.metadata };
     }
 
-    // Populate Inputs
+    // Populate UI
     document.getElementById('header-bg-color').value = currentConfig.bgColor;
     document.getElementById('header-accent-color').value = currentConfig.accentColor;
     document.getElementById('header-text-color').value = currentConfig.textColor;
@@ -48,13 +52,18 @@ function openHeaderEditor() {
     document.getElementById('header-sub-text').value = currentConfig.subText;
     document.getElementById('header-font-size').value = currentConfig.fontSize;
     document.getElementById('header-pattern').value = currentConfig.pattern;
+    
+    // Positions
+    document.getElementById('header-main-x').value = currentConfig.mainX || 50;
+    document.getElementById('header-main-y').value = currentConfig.mainY || 45;
+    document.getElementById('header-sub-x').value = currentConfig.subX || 50;
+    document.getElementById('header-sub-y').value = currentConfig.subY || 70;
 
     updatePreview();
     document.getElementById('header-editor-modal').classList.remove('hidden');
 }
 
 function updatePreview() {
-    // Update State object from Inputs
     currentConfig.bgColor = document.getElementById('header-bg-color').value;
     currentConfig.accentColor = document.getElementById('header-accent-color').value;
     currentConfig.textColor = document.getElementById('header-text-color').value;
@@ -62,8 +71,12 @@ function updatePreview() {
     currentConfig.subText = document.getElementById('header-sub-text').value;
     currentConfig.fontSize = parseInt(document.getElementById('header-font-size').value);
     currentConfig.pattern = document.getElementById('header-pattern').value;
+    
+    currentConfig.mainX = document.getElementById('header-main-x').value;
+    currentConfig.mainY = document.getElementById('header-main-y').value;
+    currentConfig.subX = document.getElementById('header-sub-x').value;
+    currentConfig.subY = document.getElementById('header-sub-y').value;
 
-    // Generate SVG
     const svgHTML = generateHeaderSVG(currentConfig);
     document.getElementById('header-preview-container').innerHTML = svgHTML;
 }
@@ -73,37 +86,50 @@ export function generateHeaderSVG(config) {
     const h = 200;
     
     // Patterns
-    let patternDef = '';
-    let patternRect = '';
-    
+    let defs = '';
+    let rectFill = `fill="${config.bgColor}"`; // Default solid color
+    let patternOverlay = '';
+
     if (config.pattern === 'stripes') {
-        patternDef = `
+        defs = `
             <defs>
-                <pattern id="stripes" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <pattern id="p_stripes" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                     <line x1="0" y1="0" x2="0" y2="20" stroke="${config.accentColor}" stroke-width="10" opacity="0.1" />
                 </pattern>
             </defs>`;
-        patternRect = `<rect width="100%" height="100%" fill="url(#stripes)" />`;
-    } else if (config.pattern === 'circle') {
-        patternRect = `<circle cx="10%" cy="50%" r="80" fill="${config.accentColor}" opacity="0.2" />`;
+        patternOverlay = `<rect width="100%" height="100%" fill="url(#p_stripes)" />`;
+    } 
+    else if (config.pattern === 'circle') {
+        defs = `
+            <defs>
+                <pattern id="p_circles" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="10" cy="10" r="2" fill="${config.accentColor}" opacity="0.2" />
+                </pattern>
+            </defs>`;
+        patternOverlay = `<rect width="100%" height="100%" fill="url(#p_circles)" />`;
     }
 
+    // FIX SIZE: height: auto ensures it doesn't shrink
     return `
-        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" style="width:100%; height:100%; background:${config.bgColor};">
-            ${patternDef}
-            ${patternRect}
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" 
+             style="width:100%; height:auto; display:block; background:${config.bgColor}; min-height:100px;">
+            ${defs}
+            ${patternOverlay}
             
             <!-- Bottom Border -->
             <rect x="0" y="${h - 10}" width="${w}" height="10" fill="${config.accentColor}" />
 
-            <!-- Text -->
-            <text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle" 
+            <!-- Main Text -->
+            <text x="${config.mainX}%" y="${config.mainY}%" 
+                  text-anchor="middle" dominant-baseline="middle" 
                   fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="900" 
                   font-size="${config.fontSize}">
                 ${config.mainText.toUpperCase()}
             </text>
             
-            <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" 
+            <!-- Sub Text -->
+            <text x="${config.subX}%" y="${config.subY}%" 
+                  text-anchor="middle" dominant-baseline="middle" 
                   fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="400" 
                   font-size="${config.fontSize * 0.4}" opacity="0.8" letter-spacing="2">
                 ${config.subText.toUpperCase()}
@@ -113,30 +139,30 @@ export function generateHeaderSVG(config) {
 }
 
 async function saveHeaderConfig() {
-    // Check if config row exists
     let item = state.items.find(i => i.type === 'header_config');
     
     if (!item) {
-        // Create new
         item = {
             type: 'header_config',
-            page: 'all', // special page
-            position: -99, // Doesn't matter, not rendered in list
+            page: 'all', 
+            position: -99, 
             content: 'Header Configuration',
             styles: {},
             metadata: currentConfig
         };
         state.items.push(item);
     } else {
-        // Update existing
         item.metadata = currentConfig;
     }
 
-    // Save
-    document.dispatchEvent(new Event('app-render-request')); // Trigger auto-save
+    document.dispatchEvent(new Event('app-render-request')); 
     document.getElementById('header-editor-modal').classList.add('hidden');
     
-    // Force re-render of header immediately
+    // Force immediate DOM update
     const headerEl = document.getElementById('super-header');
-    headerEl.innerHTML = generateHeaderSVG(currentConfig);
+    if(headerEl) {
+        headerEl.innerHTML = generateHeaderSVG(currentConfig);
+        headerEl.style.padding = '0';
+        headerEl.style.borderBottom = 'none';
+    }
 }
