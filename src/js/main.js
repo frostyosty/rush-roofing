@@ -23,7 +23,7 @@ window.addEventListener('error', (e) => {
 }, true); 
 
 async function startApp() {
-    console.log('Initializing Tweed Trading CMS...');
+console.log('Initializing Rush Roofing CMS...');
 
     const startTime = Date.now();
     const MIN_LOAD_TIME = 1000; 

@@ -200,9 +200,14 @@ function renderNotepad(el) {
         </div>
     `;
     const textarea = el.querySelector('textarea');
-    const savedNote = localStorage.getItem('tweed_notepad_data');
+    
+    // RENAMED KEY: 'rush_notepad_data'
+    const savedNote = localStorage.getItem('rush_notepad_data');
     if (savedNote) textarea.value = savedNote;
-    textarea.addEventListener('input', (e) => { localStorage.setItem('tweed_notepad_data', e.target.value); });
+    
+    textarea.addEventListener('input', (e) => { 
+        localStorage.setItem('rush_notepad_data', e.target.value); 
+    });
 }
 
 function changeScale(item, amount) {

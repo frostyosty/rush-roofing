@@ -81,12 +81,14 @@
 <body>
 
     <!-- Header / Trigger Zone -->
-     <div id="super-header" class="site-header">
-        <!-- Update Alt Text -->
-        <img src="/assets/quick_logo.png" alt="Rush Roofing" class="header-logo" ...>
-        <!-- Update Fallback Text -->
-        <h1 id="fallback-text" style="display: none;">Rush Roofing</h1>
-    </div>
+<div id="super-header" class="site-header">
+    <!-- Hide image for now -->
+    <img src="#" alt="Rush Roofing" class="header-logo" style="display:none;"
+         onerror="this.style.display='none'; document.getElementById('fallback-text').style.display='block';">
+    
+    <!-- Show Text -->
+    <h1 id="fallback-text">Rush Roofing Services</h1>
+</div>
 
     <!-- MOVED OUTSIDE: Navigation Tabs -->
     <!-- 3. NAV -->
