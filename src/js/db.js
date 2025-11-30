@@ -6,8 +6,8 @@ import { notifyAdminOfChange } from './security.js';
 // 👇 FIX: Added "export" here so imageManager.js can use it
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const TABLE_CONTENT = 'tweed_trading_content';
-const TABLE_HISTORY = 'tweed_trading_history';
+const TABLE_CONTENT = 'rush_roofing_content';
+const TABLE_HISTORY = 'rush_roofing_history';
 
 export async function fetchContent() {
     const { data, error } = await supabase

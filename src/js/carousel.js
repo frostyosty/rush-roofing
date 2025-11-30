@@ -1,7 +1,7 @@
 /// src/js/carousel.js
 
 // 👇 CORRECT SUPABASE URL (Based on your logs)
-const BASE_URL = 'https://oannlpewujcnmbzzvklu.supabase.co/storage/v1/object/public/assets/';
+const BASE_URL = 'https://oannlpewujcnmbzzvklu.supabase.co/storage/v1/object/public/rush-assets/';
 
 const imageMap = {
     // We use the BASE_URL variable so we don't have to type the long string every time
