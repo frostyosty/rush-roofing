@@ -159,13 +159,15 @@ function renderGlobalHeader() {
 
 function setupNavigation() {
     const navContainer = document.querySelector('.main-nav');
-    if (!navContainer) return;
-
+    if(!navContainer) return;
+    
     const pages = new Set(state.items.map(i => i.page || 'home'));
-    // Updated Ordered Pages for Rush Roofing
     const orderedPages = ['home', 'services', 'gallery', 'contact'];
 
-    pages.forEach(p => { if (!orderedPages.includes(p)) orderedPages.push(p); });
+    // 👇 FILTER OUT 'all' HERE
+    pages.forEach(p => { 
+        if (p !== 'all' && !orderedPages.includes(p)) orderedPages.push(p); 
+    });
 
     navContainer.innerHTML = '';
 

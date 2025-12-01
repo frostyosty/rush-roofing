@@ -13,7 +13,7 @@ export const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 
 // 2. EMAIL KEYS (UPDATE THESE!)
 export const EMAIL_SERVICE_ID = "service_4q7zz8k";
-export const EMAIL_TEMPLATE_ID = "template_5x0ggjh";
+export const EMAIL_TEMPLATE_ID = "template_n8ar4dp";
 export const EMAIL_PUBLIC_KEY = "fuyR9UxYzfx8CjIDm";
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {

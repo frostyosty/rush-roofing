@@ -166,7 +166,11 @@ function openSectionsManager() {
 function renderSectionsTable() {
     const tbody = document.getElementById('sections-list');
     tbody.innerHTML = '';
-    const sortedItems = [...state.items].sort((a, b) => {
+const sortedItems = [...state.items].sort((a, b) => {
+        // 👇 SORT LOGIC: 'all' goes to bottom
+        if (a.page === 'all') return 1;
+        if (b.page === 'all') return -1;
+
         if (a.page === b.page) return (a.position || 0) - (b.position || 0);
         return (a.page || '').localeCompare(b.page || '');
     });
