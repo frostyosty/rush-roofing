@@ -1232,3 +1232,21 @@ body {
 .toolbar-header { text-align: center; font-weight: bold; margin-bottom: 5px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 .toolbar-actions { display: flex; justify-content: center; gap: 10px; }
 .toolbar-actions button { background: var(--accent); border: none; color: #fff; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+
+/* Ensure the header container has NO padding when SVG is active */
+.site-header {
+    /* Existing styles... */
+    padding: 20px 10px; /* Default */
+    
+    /* ADD THIS to fix SVG alignment issues */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Cut off weird overhangs */
+}
+
+/* Ensure SVG fills space but doesn't overflow */
+.site-header svg {
+    max-width: 100%;
+    height: auto;
+}

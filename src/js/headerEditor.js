@@ -11,7 +11,6 @@ let currentConfig = {
     subText: 'Quality Solutions Bay Wide',
     fontSize: 40,
     pattern: 'none',
-    // Position Defaults (Center)
     mainX: 50, mainY: 45,
     subX: 50, subY: 70
 };
@@ -20,7 +19,6 @@ export function initHeaderEditor() {
     const btn = document.getElementById('btn-edit-header');
     if (btn) btn.onclick = openHeaderEditor;
 
-    // Attach Listeners to ALL inputs
     const inputs = [
         'header-bg-color', 'header-accent-color', 'header-text-color',
         'header-main-text', 'header-sub-text', 'header-font-size', 'header-pattern',
@@ -29,7 +27,7 @@ export function initHeaderEditor() {
 
     inputs.forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.oninput = updatePreview; // oninput updates instantly while dragging
+        if(el) el.oninput = updatePreview;
     });
 
     document.getElementById('btn-save-header').onclick = saveHeaderConfig;
@@ -45,19 +43,19 @@ function openHeaderEditor() {
     }
 
     // Populate UI
-    document.getElementById('header-bg-color').value = currentConfig.bgColor;
-    document.getElementById('header-accent-color').value = currentConfig.accentColor;
-    document.getElementById('header-text-color').value = currentConfig.textColor;
-    document.getElementById('header-main-text').value = currentConfig.mainText;
-    document.getElementById('header-sub-text').value = currentConfig.subText;
-    document.getElementById('header-font-size').value = currentConfig.fontSize;
-    document.getElementById('header-pattern').value = currentConfig.pattern;
+    document.getElementById('header-bg-color').value = currentConfig.bgColor || '#263238';
+    document.getElementById('header-accent-color').value = currentConfig.accentColor || '#f57c00';
+    document.getElementById('header-text-color').value = currentConfig.textColor || '#ffffff';
+    document.getElementById('header-main-text').value = currentConfig.mainText || '';
+    document.getElementById('header-sub-text').value = currentConfig.subText || '';
+    document.getElementById('header-font-size').value = currentConfig.fontSize || 40;
+    document.getElementById('header-pattern').value = currentConfig.pattern || 'none';
     
-    // Positions
-    document.getElementById('header-main-x').value = currentConfig.mainX || 50;
-    document.getElementById('header-main-y').value = currentConfig.mainY || 45;
-    document.getElementById('header-sub-x').value = currentConfig.subX || 50;
-    document.getElementById('header-sub-y').value = currentConfig.subY || 70;
+    // Positions (Use defaults if missing)
+    document.getElementById('header-main-x').value = currentConfig.mainX ?? 50;
+    document.getElementById('header-main-y').value = currentConfig.mainY ?? 45;
+    document.getElementById('header-sub-x').value = currentConfig.subX ?? 50;
+    document.getElementById('header-sub-y').value = currentConfig.subY ?? 70;
 
     updatePreview();
     document.getElementById('header-editor-modal').classList.remove('hidden');
@@ -85,55 +83,33 @@ export function generateHeaderSVG(config) {
     const w = 800;
     const h = 200;
     
-    // Patterns
+    // --- FIX: DEFAULTS ---
+    // If these come in as undefined, default them to center (50)
+    const mx = config.mainX ?? 50;
+    const my = config.mainY ?? 45;
+    const sx = config.subX ?? 50;
+    const sy = config.subY ?? 70;
+    
     let defs = '';
-    let rectFill = `fill="${config.bgColor}"`; // Default solid color
     let patternOverlay = '';
 
     if (config.pattern === 'stripes') {
-        defs = `
-            <defs>
-                <pattern id="p_stripes" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                    <line x1="0" y1="0" x2="0" y2="20" stroke="${config.accentColor}" stroke-width="10" opacity="0.1" />
-                </pattern>
-            </defs>`;
+        defs = `<defs><pattern id="p_stripes" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="20" stroke="${config.accentColor}" stroke-width="10" opacity="0.1" /></pattern></defs>`;
         patternOverlay = `<rect width="100%" height="100%" fill="url(#p_stripes)" />`;
     } 
     else if (config.pattern === 'circle') {
-        defs = `
-            <defs>
-                <pattern id="p_circles" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="10" cy="10" r="2" fill="${config.accentColor}" opacity="0.2" />
-                </pattern>
-            </defs>`;
+        defs = `<defs><pattern id="p_circles" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="${config.accentColor}" opacity="0.2" /></pattern></defs>`;
         patternOverlay = `<rect width="100%" height="100%" fill="url(#p_circles)" />`;
     }
 
-    // FIX SIZE: height: auto ensures it doesn't shrink
     return `
         <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" 
              style="width:100%; height:auto; display:block; background:${config.bgColor}; min-height:100px;">
             ${defs}
             ${patternOverlay}
-            
-            <!-- Bottom Border -->
             <rect x="0" y="${h - 10}" width="${w}" height="10" fill="${config.accentColor}" />
-
-            <!-- Main Text -->
-            <text x="${config.mainX}%" y="${config.mainY}%" 
-                  text-anchor="middle" dominant-baseline="middle" 
-                  fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="900" 
-                  font-size="${config.fontSize}">
-                ${config.mainText.toUpperCase()}
-            </text>
-            
-            <!-- Sub Text -->
-            <text x="${config.subX}%" y="${config.subY}%" 
-                  text-anchor="middle" dominant-baseline="middle" 
-                  fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="400" 
-                  font-size="${config.fontSize * 0.4}" opacity="0.8" letter-spacing="2">
-                ${config.subText.toUpperCase()}
-            </text>
+            <text x="${mx}%" y="${my}%" text-anchor="middle" dominant-baseline="middle" fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="900" font-size="${config.fontSize}">${config.mainText.toUpperCase()}</text>
+            <text x="${sx}%" y="${sy}%" text-anchor="middle" dominant-baseline="middle" fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="400" font-size="${config.fontSize * 0.4}" opacity="0.8" letter-spacing="2">${config.subText.toUpperCase()}</text>
         </svg>
     `;
 }
