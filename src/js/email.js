@@ -4,33 +4,31 @@ import { EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, EMAIL_PUBLIC_KEY } from './config.
 
 let isInitialized = false;
 
-// Call this ONCE at startup
 export function initEmailConfig() {
     if (isInitialized) return;
     
-    console.log("⚡ EMAIL SYSTEM V2: Initializing Global Listener...");
+    console.log("⚡ EMAIL V3: Global Listener Active");
     emailjs.init(EMAIL_PUBLIC_KEY);
     
-    // --- GLOBAL EVENT LISTENER ---
-    // This catches submits anywhere on the page, forever.
     document.addEventListener('submit', (e) => {
-        // Log every submit event to see if we catch it
-        console.log("⚡ EVENT CAPTURED: Submit detected on:", e.target.id);
-
-        if (e.target && e.target.id === 'embedded-email-form') {
-            console.log("✅ TARGET MATCH: Preventing default refresh...");
-            e.preventDefault(); // STOP THE PAGE REFRESH
-            handleFormSubmit(e.target);
+        const form = e.target;
+        
+        // ROBUST CHECK: Does this form look like our contact form?
+        // We check if it has the specific email input field we use.
+        if (form && form.elements['user_email']) {
+            console.log("✅ CONTACT FORM DETECTED. Intercepting...");
+            e.preventDefault(); // STOP REFRESH
+            handleFormSubmit(form);
+        } else {
+            console.log("Ignored non-contact form submission.");
         }
     });
 
     isInitialized = true;
 }
 
-// We keep this function empty so main.js doesn't crash when it calls it
-export function attachEmailListeners() {
-    // DO NOTHING. The global listener above handles everything now.
-}
+// Keep empty for compatibility
+export function attachEmailListeners() {}
 
 function handleFormSubmit(form) {
     // 1. Spam Prevention
@@ -48,7 +46,7 @@ function handleFormSubmit(form) {
     }
 
     // 2. UI Feedback
-    const btn = form.querySelector('.submit-btn');
+    const btn = form.querySelector('button[type="submit"]'); // Robust selector
     const originalText = btn ? btn.innerText : 'Send';
     if(btn) {
         btn.innerText = 'Sending...';
@@ -64,18 +62,18 @@ function handleFormSubmit(form) {
         message: form.elements['message'].value
     };
 
-    console.log("⚡ EMAILJS: Sending data...", templateParams);
+    console.log("⚡ Sending to EmailJS...", templateParams);
 
     // 4. Send
     emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams)
         .then(() => {
-            console.log("⚡ EMAILJS: Success");
+            console.log("⚡ SUCCESS");
             showPopup('Email sent successfully!');
             localStorage.setItem('lastEmailSubmit', Date.now().toString());
             form.reset();
         })
         .catch((err) => {
-            console.error("⚡ EMAILJS ERROR:", err);
+            console.error("⚡ ERROR:", err);
             showPopup('Error sending email. Please try again later.');
         })
         .finally(() => {
