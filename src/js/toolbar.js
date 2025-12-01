@@ -120,7 +120,8 @@ function renderSectionsTable() {
 
     // Page Options
     const uniquePages = new Set(state.items.map(i => i.page || 'home'));
-    ['home', 'services', 'gallery', 'contact'].forEach(p => uniquePages.add(p));
+    // Update Page List
+    ['home', 'services', 'testimonials', 'contact'].forEach(p => uniquePages.add(p));
     const pageOptions = Array.from(uniquePages).sort();
 
     sortedItems.forEach(item => {
@@ -134,7 +135,7 @@ function renderSectionsTable() {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.content || '';
         let text = tempDiv.innerText.substring(0, 30) + '...';
-        if (item.type === 'carousel') text = '<b>[Carousel]</b>';
+        if (item.type === 'gallery') text = '<b>[Gallery/Slider]</b>';
         if (item.type === 'map') text = '<b>[Map]</b>';
         if (item.type === 'notepad') text = '<b>[Notepad]</b>';
         if (item.type === 'alert') text = '<b style="color:orange">[ALERT]</b> ' + text;
@@ -172,7 +173,7 @@ function attachTableListeners() {
         el.addEventListener('click', async (e) => {
             const index = e.target.closest('.edit-row-btn').getAttribute('data-idx');
             const item = state.items[index];
-            if (item.type === 'carousel') { openImageManager(index); }
+            if (item.type === 'gallery') { openImageManager(index); }
             else if (item.type === 'map') { const newCode = await ask("Paste Google Maps Embed HTML:"); if (newCode && newCode.includes('<iframe')) { item.content = newCode; triggerOptimisticUpdate(); } }
             else if (item.type === 'notepad') { alert("Notepad cannot be edited globally."); }
             else { editingIndex = index; document.getElementById('visual-editor').innerHTML = item.content || ''; document.getElementById('edit-content-modal').classList.remove('hidden'); }

@@ -15,15 +15,15 @@ if (!globalColorInput) {
     globalColorInput.type = 'color';
     globalColorInput.style.display = 'none';
     document.body.appendChild(globalColorInput);
-    
+
     globalColorInput.addEventListener('input', (e) => {
-        if (activeColorCallback) activeColorCallback(e.target.value, false); 
+        if (activeColorCallback) activeColorCallback(e.target.value, false);
     });
 
     globalColorInput.addEventListener('change', (e) => {
         if (activeColorCallback) {
-            activeColorCallback(e.target.value, true); 
-            activeColorCallback = null; 
+            activeColorCallback(e.target.value, true);
+            activeColorCallback = null;
         }
     });
 }
@@ -33,7 +33,7 @@ export function render() {
     container.innerHTML = '';
 
     const pageItems = state.items.filter(item => {
-        const itemPage = item.page || 'home'; 
+        const itemPage = item.page || 'home';
         return itemPage === state.currentPage;
     });
 
@@ -43,15 +43,20 @@ export function render() {
 
     pageItems.forEach((item) => {
         const el = document.createElement('div');
-        
+
         if (item.type === 'notepad') {
-            el.className = 'content-block'; 
+            el.className = 'content-block';
             renderNotepad(el);
         } else if (item.type === 'alert') {
-            el.className = 'content-block alert-box'; 
+            el.className = 'content-block alert-box';
             el.innerHTML = item.content || '';
         } else {
             el.className = 'content-block';
+            el.innerHTML = item.content || '';
+        }
+        if (item.type === 'gallery') {
+            el.className = 'content-block';
+            // We render empty div, gallery.js injects content later
             el.innerHTML = item.content || '';
         }
 
@@ -86,30 +91,30 @@ function setupDevFeatures(el, item, index) {
     if (item.type !== 'notepad') {
         el.classList.add('editable');
         el.setAttribute('contenteditable', 'true');
-        
+
         // This triggers when you click OUT of the text box
         el.onblur = (e) => {
             // 1. Clean up Dev UI elements before saving content
             const clone = el.cloneNode(true);
             const btns = clone.querySelectorAll('.quick-delete-btn, .element-tools');
             btns.forEach(b => b.remove());
-            
+
             const newVal = clone.innerHTML;
-            
+
             // 2. CHECK: Did content change?
             if (state.items[index].content !== newVal) {
                 console.log("📝 Text Change Detected on Item", index);
-                
+
                 // 3. UPDATE STATE
                 state.items[index].content = newVal;
-                
+
                 // 4. TRIGGER SAVE
-                triggerRender(); 
+                triggerRender();
             }
         };
     } else {
         el.classList.add('editable');
-        el.setAttribute('contenteditable', 'false'); 
+        el.setAttribute('contenteditable', 'false');
     }
 
     // --- 3. ELEMENT TOOLBAR ---
@@ -125,7 +130,7 @@ function setupDevFeatures(el, item, index) {
     }
 
     // Buttons
-    const dragBtn = createBtn('fa-grip-vertical', 'tool-pos', () => {});
+    const dragBtn = createBtn('fa-grip-vertical', 'tool-pos', () => { });
     dragBtn.style.cursor = 'grab';
     el.draggable = true;
     el.addEventListener('dragstart', (e) => { dragSrcIndex = index; e.dataTransfer.effectAllowed = 'move'; el.style.opacity = '0.4'; });
@@ -138,7 +143,7 @@ function setupDevFeatures(el, item, index) {
             const movedItem = state.items[dragSrcIndex];
             state.items.splice(dragSrcIndex, 1);
             let targetIndex = index;
-            if (dragSrcIndex < index) targetIndex--; 
+            if (dragSrcIndex < index) targetIndex--;
             state.items.splice(targetIndex, 0, movedItem);
             state.items.forEach((itm, i) => itm.position = i);
             triggerRender();
@@ -148,7 +153,7 @@ function setupDevFeatures(el, item, index) {
     const sizeBtn = createBtn('fa-expand', 'tool-size', async () => {
         const current = item.styles.maxWidth || '1000px';
         const newVal = await ask("Max Width (e.g. 100%, 600px):", current);
-        if(newVal) { item.styles.maxWidth = newVal; triggerRender(); }
+        if (newVal) { item.styles.maxWidth = newVal; triggerRender(); }
     });
 
     const zoomOutBtn = createBtn('fa-search-minus', 'tool-scale', () => changeScale(item, -0.1));
@@ -163,7 +168,7 @@ function setupDevFeatures(el, item, index) {
                 document.execCommand('styleWithCSS', false, true);
                 document.execCommand('foreColor', false, val);
             } else {
-                el.style.color = val; 
+                el.style.color = val;
                 if (save) {
                     if (hasSelection) state.items[index].content = el.innerHTML;
                     else item.styles.color = val;
@@ -176,9 +181,9 @@ function setupDevFeatures(el, item, index) {
 
     const bgBtn = createBtn('fa-fill-drip', 'tool-color', () => {
         activeColorCallback = (val, save) => {
-            el.style.backgroundColor = val; 
+            el.style.backgroundColor = val;
             if (save) {
-                item.styles.background = val; 
+                item.styles.background = val;
                 triggerRender();
             }
         };
@@ -200,13 +205,13 @@ function renderNotepad(el) {
         </div>
     `;
     const textarea = el.querySelector('textarea');
-    
+
     // RENAMED KEY: 'rush_notepad_data'
     const savedNote = localStorage.getItem('rush_notepad_data');
     if (savedNote) textarea.value = savedNote;
-    
-    textarea.addEventListener('input', (e) => { 
-        localStorage.setItem('rush_notepad_data', e.target.value); 
+
+    textarea.addEventListener('input', (e) => {
+        localStorage.setItem('rush_notepad_data', e.target.value);
     });
 }
 

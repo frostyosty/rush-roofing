@@ -6,7 +6,7 @@ import { initEditor } from './editor.js';
 import { initToolbar } from './toolbar.js';
 import { initEmailConfig, attachEmailListeners } from './email.js';
 import { STATIC_CONTENT } from './fallback/staticContent.js';
-import { initCarousel } from './carousel.js';
+import { initGallery } from './gallery.js';
 // Import the generator
 import { generateHeaderSVG } from './headerEditor.js'; 
 
@@ -77,7 +77,7 @@ console.log('Initializing Rush Roofing CMS...');
         renderGlobalHeader(); 
         
         attachEmailListeners();
-        initCarousel();
+        initGallery();
 
         initEditor();
         initToolbar();
@@ -117,7 +117,7 @@ console.log('Initializing Rush Roofing CMS...');
         renderGlobalHeader(); 
         
         setupNavigation();
-        initCarousel();
+        initGallery();
         import('./email.js').then(m => m.attachEmailListeners());
 
         if (isOfflineMode) {
@@ -162,8 +162,7 @@ function setupNavigation() {
     if(!navContainer) return;
     
     const pages = new Set(state.items.map(i => i.page || 'home'));
-    const orderedPages = ['home', 'services', 'gallery', 'contact'];
-
+    const orderedPages = ['home', 'services', 'testimonials', 'contact'];
     // 👇 FILTER OUT 'all' HERE
     pages.forEach(p => { 
         if (p !== 'all' && !orderedPages.includes(p)) orderedPages.push(p); 
@@ -184,7 +183,7 @@ function setupNavigation() {
             setPage(pageName);
             render();
             attachEmailListeners();
-            initCarousel();
+            initGallery();
         });
         navContainer.appendChild(btn);
     });

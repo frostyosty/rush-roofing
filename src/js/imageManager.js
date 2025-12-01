@@ -4,14 +4,16 @@ import { supabase } from './db.js';
 import { render } from './renderer.js';
 
 // --- 🔓 UPLOAD SWITCH ---
-const ENABLE_UPLOADS = true; // Set to false later to lock it down
+const ENABLE_UPLOADS = true; 
 
-let currentCarouselIndex = null;
+let currentGalleryIndex = null;
 let tempImageList = [];
 
 export function openImageManager(index) {
-    currentCarouselIndex = index;
+    currentGalleryIndex = index;
     const item = state.items[index];
+    
+    // Load images
     tempImageList = item.metadata && item.metadata.images ? [...item.metadata.images] : [];
     
     const modal = document.getElementById('image-modal');
@@ -22,23 +24,46 @@ export function openImageManager(index) {
 
     document.getElementById('close-images').onclick = () => modal.classList.add('hidden');
     
+    // --- DRAG & DROP UPLOAD ZONE (Entire Modal) ---
+    const dropZone = modal.querySelector('.modal-content');
+    
+    // Prevent default browser behavior (opening image in tab)
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight visual
+    dropZone.addEventListener('dragover', () => dropZone.style.border = '3px dashed #f57c00');
+    dropZone.addEventListener('dragleave', () => dropZone.style.border = 'none');
+    
+    // Handle Drop
+    dropZone.addEventListener('drop', (e) => {
+        dropZone.style.border = 'none';
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleUploadFiles(files);
+    });
+
+    // Manual Button
     const uploadBtn = document.getElementById('btn-upload-img');
     const fileInput = document.getElementById('img-upload-input');
-    
     if (uploadBtn && fileInput) {
         uploadBtn.onclick = () => {
-            if (!ENABLE_UPLOADS) {
-                alert("Uploads are currently disabled.");
-                return;
-            }
+            if (!ENABLE_UPLOADS) { alert("Uploads disabled."); return; }
             fileInput.click();
         };
-        fileInput.onchange = handleUpload;
+        fileInput.onchange = (e) => handleUploadFiles(e.target.files);
     }
     
+    // Save
     document.getElementById('btn-save-images').onclick = () => {
-        if (!state.items[currentCarouselIndex].metadata) state.items[currentCarouselIndex].metadata = {};
-        state.items[currentCarouselIndex].metadata.images = tempImageList;
+        if (!state.items[currentGalleryIndex].metadata) state.items[currentGalleryIndex].metadata = {};
+        state.items[currentGalleryIndex].metadata.images = tempImageList;
         render();
         document.dispatchEvent(new Event('app-render-request'));
         modal.classList.add('hidden');
@@ -51,8 +76,7 @@ function renderImageTable() {
     tbody.innerHTML = '';
 
     if (tempImageList.length === 0) {
-        // 👇 UPDATED TEXT
-        tbody.innerHTML = '<tr><td colspan="3" style="padding:20px; text-align:center;">Drag and drop to upload images.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">Drag and drop images here to upload.</td></tr>';
         return;
     }
 
@@ -62,6 +86,8 @@ function renderImageTable() {
         tr.draggable = true;
 
         const thumb = `<img src="${img.url}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;">`;
+        
+        // CATEGORY SELECT
         const catSelect = `
             <select class="cat-select" data-idx="${idx}" style="padding:8px; width:100%;">
                 <option value="re-roofs" ${img.category === 're-roofs' ? 'selected' : ''}>Re-Roofs</option>
@@ -71,10 +97,20 @@ function renderImageTable() {
                 <option value="spouting" ${img.category === 'spouting' ? 'selected' : ''}>Spouting</option>
             </select>
         `;
+
+        // ROLE SELECT (Before/After)
+        const roleSelect = `
+            <select class="role-select" data-idx="${idx}" style="padding:8px; width:100%;">
+                <option value="after" ${img.role === 'after' || !img.role ? 'selected' : ''}>After (Main)</option>
+                <option value="before" ${img.role === 'before' ? 'selected' : ''}>Before (Overlay)</option>
+            </select>
+        `;
+
         const delBtn = `<button class="img-del-btn" data-idx="${idx}" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>`;
 
-        tr.innerHTML = `<td style="padding:10px;">${thumb}</td><td style="padding:10px;">${catSelect}</td><td style="padding:10px;">${delBtn}</td>`;
+        tr.innerHTML = `<td style="padding:10px;">${thumb}</td><td style="padding:10px;">${catSelect}</td><td style="padding:10px;">${roleSelect}</td><td style="padding:10px;">${delBtn}</td>`;
         
+        // Reordering Logic
         tr.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', idx); });
         tr.addEventListener('dragover', e => { e.preventDefault(); });
         tr.addEventListener('drop', e => {
@@ -88,8 +124,12 @@ function renderImageTable() {
         tbody.appendChild(tr);
     });
 
+    // Listeners
     document.querySelectorAll('.cat-select').forEach(sel => {
         sel.addEventListener('change', e => { tempImageList[e.target.dataset.idx].category = e.target.value; });
+    });
+    document.querySelectorAll('.role-select').forEach(sel => {
+        sel.addEventListener('change', e => { tempImageList[e.target.dataset.idx].role = e.target.value; });
     });
     document.querySelectorAll('.img-del-btn').forEach(btn => {
         btn.addEventListener('click', e => {
@@ -100,10 +140,8 @@ function renderImageTable() {
     });
 }
 
-async function handleUpload(e) {
+async function handleUploadFiles(files) {
     if (!ENABLE_UPLOADS) return;
-    
-    const files = e.target.files;
     if (!files.length) return;
 
     const status = document.getElementById('upload-status');
@@ -111,19 +149,20 @@ async function handleUpload(e) {
 
     for (let file of files) {
         const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-        // Ensure 'rush-assets' is the correct bucket name in Supabase
         const { data, error } = await supabase.storage.from('rush-assets').upload(fileName, file);
 
         if (!error) {
-            // Get Public URL
             const { data: urlData } = supabase.storage.from('rush-assets').getPublicUrl(fileName);
-            tempImageList.push({ url: urlData.publicUrl, category: 're-roofs' });
+            tempImageList.push({ 
+                url: urlData.publicUrl, 
+                category: 're-roofs',
+                role: 'after' // Default to 'After'
+            });
         } else {
-            console.error("Upload Error:", error);
+            console.error(error);
             alert("Upload Failed: " + error.message);
         }
     }
     status.innerText = "";
     renderImageTable();
-    e.target.value = '';
 }
