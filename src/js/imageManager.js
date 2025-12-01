@@ -8,12 +8,13 @@ const ENABLE_UPLOADS = true;
 
 let currentGalleryIndex = null;
 let tempImageList = [];
+let isInitialized = false; // <--- NEW FLAG to prevent duplicate listeners
 
 export function openImageManager(index) {
     currentGalleryIndex = index;
     const item = state.items[index];
     
-    // Load images
+    // Load images locally so we can edit without saving immediately
     tempImageList = item.metadata && item.metadata.images ? [...item.metadata.images] : [];
     
     const modal = document.getElementById('image-modal');
@@ -22,9 +23,20 @@ export function openImageManager(index) {
     renderImageTable();
     modal.classList.remove('hidden');
 
+    // --- FIX: ONLY ATTACH LISTENERS ONCE ---
+    if (!isInitialized) {
+        setupStaticListeners(modal);
+        isInitialized = true;
+    }
+}
+
+function setupStaticListeners(modal) {
+    console.log("Initializing Image Manager Listeners...");
+
+    // 1. Close Button
     document.getElementById('close-images').onclick = () => modal.classList.add('hidden');
     
-    // --- DRAG & DROP UPLOAD ZONE (Entire Modal) ---
+    // 2. Drag & Drop Logic
     const dropZone = modal.querySelector('.modal-content');
     
     // Prevent default browser behavior (opening image in tab)
@@ -37,7 +49,7 @@ export function openImageManager(index) {
         e.stopPropagation();
     }
 
-    // Highlight visual
+    // Visual Feedback
     dropZone.addEventListener('dragover', () => dropZone.style.border = '3px dashed #f57c00');
     dropZone.addEventListener('dragleave', () => dropZone.style.border = 'none');
     
@@ -49,7 +61,7 @@ export function openImageManager(index) {
         handleUploadFiles(files);
     });
 
-    // Manual Button
+    // 3. Manual Button
     const uploadBtn = document.getElementById('btn-upload-img');
     const fileInput = document.getElementById('img-upload-input');
     if (uploadBtn && fileInput) {
@@ -60,12 +72,16 @@ export function openImageManager(index) {
         fileInput.onchange = (e) => handleUploadFiles(e.target.files);
     }
     
-    // Save
+    // 4. Save Button
     document.getElementById('btn-save-images').onclick = () => {
+        // Save back to the global state object
         if (!state.items[currentGalleryIndex].metadata) state.items[currentGalleryIndex].metadata = {};
         state.items[currentGalleryIndex].metadata.images = tempImageList;
+        
+        // Trigger Auto-Save logic in main.js
         render();
         document.dispatchEvent(new Event('app-render-request'));
+        
         modal.classList.add('hidden');
     };
 }
@@ -76,7 +92,7 @@ function renderImageTable() {
     tbody.innerHTML = '';
 
     if (tempImageList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">Drag and drop images here to upload.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#666;">Drag and drop images here to upload.</td></tr>';
         return;
     }
 
@@ -124,7 +140,7 @@ function renderImageTable() {
         tbody.appendChild(tr);
     });
 
-    // Listeners
+    // Listeners for inputs (These need to be re-attached every render because HTML is wiped)
     document.querySelectorAll('.cat-select').forEach(sel => {
         sel.addEventListener('change', e => { tempImageList[e.target.dataset.idx].category = e.target.value; });
     });
@@ -148,7 +164,9 @@ async function handleUploadFiles(files) {
     status.innerText = "Uploading...";
 
     for (let file of files) {
-        const fileName = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+        // Unique Name: timestamp_cleanfilename
+        const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        
         const { data, error } = await supabase.storage.from('rush-assets').upload(fileName, file);
 
         if (!error) {
@@ -156,7 +174,7 @@ async function handleUploadFiles(files) {
             tempImageList.push({ 
                 url: urlData.publicUrl, 
                 category: 're-roofs',
-                role: 'after' // Default to 'After'
+                role: 'after' 
             });
         } else {
             console.error(error);
