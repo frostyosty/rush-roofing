@@ -235,7 +235,7 @@ footer {
 }
 
 :root {
-  --primary: #2e7d32;
+  --primary: #7e6540;
   --dark: #1b5e20;
   --light: #f5f5f5;
   --white: #ffffff;
@@ -359,7 +359,7 @@ button.submit { background: var(--primary); color: white; border: none; padding:
 
 footer { background: var(--primary); color: white; text-align: center; padding: 20px; margin-top: auto; }
 
-:root { --primary: #2e7d32; --dark: #1b5e20; }
+:root { --primary: #7e6540; --dark: #1b5e20; }
 body { font-family: 'Segoe UI', sans-serif; margin: 0; 
   /* padding-bottom: 120px;  */
   background: #f4f4f4; }
@@ -513,7 +513,7 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
     text-align: center;
 }
 
-.contact-modal h3 { margin-top: 0; color: #2e7d32; }
+.contact-modal h3 { margin-top: 0; color: #7e6540; }
 
 .contact-modal input, .contact-modal textarea {
     width: 100%;
@@ -541,7 +541,7 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
 }
 
 #close-email { background: #eee; color: #333; }
-.submit-btn { background: #2e7d32; color: white; }
+.submit-btn { background: #7e6540; color: white; }
 
 .filter-btn {
     display: inline-block;
@@ -557,9 +557,9 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
 }
 
 .filter-btn:hover {
-    background-color: #2e7d32;
+    background-color: #7e6540;
     color: #fff;
-    border-color: #2e7d32;
+    border-color: #7e6540;
 }
 
 /* Navigation Bar */
@@ -591,13 +591,13 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
 }
 
 .nav-btn:hover {
-    color: #2e7d32;
+    color: #7e6540;
     background: #e8f5e9;
 }
 
 .nav-btn.active {
-    color: #2e7d32; /* Tweed Green */
-    border-bottom: 3px solid #2e7d32;
+    color: #7e6540; /* Tweed Green */
+    border-bottom: 3px solid #7e6540;
     background: white;
 }
 
@@ -619,7 +619,7 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
 .loading-icon {
     width: 80px; 
     height: 80px;
-    color: #2e7d32; /* Tweed Green */
+    color: #7e6540; /* Tweed Green */
     /* Pulse Animation */
     animation: pulse-fade 0.8s ease-in-out infinite alternate;
 }
@@ -641,7 +641,7 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0;
     pointer-events: none;
 }
 
-:root { --primary: #2e7d32; --dark: #1b5e20; }
+:root { --primary: #7e6540; --dark: #1b5e20; }
 
 body { 
     font-family: 'Segoe UI', sans-serif; 
@@ -713,12 +713,12 @@ body.dev-active {
 /* Nav */
 .main-nav { display: flex; justify-content: center; background-color: #f4f4f4; border-bottom: 2px solid #ddd; padding: 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .nav-btn { flex: 1; max-width: 150px; background: transparent; border: none; color: #666; padding: 15px 0; cursor: pointer; text-transform: uppercase; font-weight: 700; font-size: 0.9rem; transition: all 0.2s; border-bottom: 3px solid transparent; }
-.nav-btn:hover { color: #2e7d32; background: #e8f5e9; }
-.nav-btn.active { color: #2e7d32; border-bottom: 3px solid #2e7d32; background: white; }
+.nav-btn:hover { color: #7e6540; background: #e8f5e9; }
+.nav-btn.active { color: #7e6540; border-bottom: 3px solid #7e6540; background: white; }
 
 /* Loading & Maintenance */
 .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #ffffff; z-index: 5000; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease; }
-.loading-icon { width: 80px; height: 80px; color: #2e7d32; animation: pulse-fade 0.8s ease-in-out infinite alternate; }
+.loading-icon { width: 80px; height: 80px; color: #7e6540; animation: pulse-fade 0.8s ease-in-out infinite alternate; }
 @keyframes pulse-fade { 0% { opacity: 0.4; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
 .fade-out { opacity: 0; pointer-events: none; }
 
@@ -1011,9 +1011,9 @@ body.toast-active #app-container {
 }
 
 /* Style the visual editor to look like the real site */
-#visual-editor h3 { color: #2e7d32; margin-top: 0; }
+#visual-editor h3 { color: #7e6540; margin-top: 0; }
 #visual-editor ul { padding-left: 20px; }
-#visual-editor a { color: #2e7d32; text-decoration: underline; }
+#visual-editor a { color: #7e6540; text-decoration: underline; }
 
 /* --- RUSH ROOFING THEME --- */
 :root { 
@@ -1249,4 +1249,28 @@ body {
 .site-header svg {
     max-width: 100%;
     height: auto;
+}
+
+/* Import Industrial Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto+Slab:wght@700&family=Anton&display=swap');
+
+/* ... existing root variables ... */
+
+/* NEW: Color Input Swatch Style */
+input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 100%;
+    height: 40px;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0; 
+}
+input[type="color"]::-webkit-color-swatch {
+    border: none;
 }

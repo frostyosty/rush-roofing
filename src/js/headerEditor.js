@@ -10,6 +10,7 @@ let currentConfig = {
     mainText: 'RUSH ROOFING',
     subText: 'Quality Solutions Bay Wide',
     fontSize: 40,
+    fontFamily: 'Arial, sans-serif', // Default Font
     pattern: 'none',
     mainX: 50, mainY: 45,
     subX: 50, subY: 70
@@ -22,6 +23,7 @@ export function initHeaderEditor() {
     const inputs = [
         'header-bg-color', 'header-accent-color', 'header-text-color',
         'header-main-text', 'header-sub-text', 'header-font-size', 'header-pattern',
+        'header-font-family', // Added Font listener
         'header-main-x', 'header-main-y', 'header-sub-x', 'header-sub-y'
     ];
 
@@ -50,8 +52,8 @@ function openHeaderEditor() {
     document.getElementById('header-sub-text').value = currentConfig.subText || '';
     document.getElementById('header-font-size').value = currentConfig.fontSize || 40;
     document.getElementById('header-pattern').value = currentConfig.pattern || 'none';
+    document.getElementById('header-font-family').value = currentConfig.fontFamily || 'Arial, sans-serif';
     
-    // Positions (Use defaults if missing)
     document.getElementById('header-main-x').value = currentConfig.mainX ?? 50;
     document.getElementById('header-main-y').value = currentConfig.mainY ?? 45;
     document.getElementById('header-sub-x').value = currentConfig.subX ?? 50;
@@ -69,6 +71,7 @@ function updatePreview() {
     currentConfig.subText = document.getElementById('header-sub-text').value;
     currentConfig.fontSize = parseInt(document.getElementById('header-font-size').value);
     currentConfig.pattern = document.getElementById('header-pattern').value;
+    currentConfig.fontFamily = document.getElementById('header-font-family').value;
     
     currentConfig.mainX = document.getElementById('header-main-x').value;
     currentConfig.mainY = document.getElementById('header-main-y').value;
@@ -82,13 +85,11 @@ function updatePreview() {
 export function generateHeaderSVG(config) {
     const w = 800;
     const h = 200;
-    
-    // --- FIX: DEFAULTS ---
-    // If these come in as undefined, default them to center (50)
     const mx = config.mainX ?? 50;
     const my = config.mainY ?? 45;
     const sx = config.subX ?? 50;
     const sy = config.subY ?? 70;
+    const font = config.fontFamily || 'Arial, sans-serif';
     
     let defs = '';
     let patternOverlay = '';
@@ -108,33 +109,34 @@ export function generateHeaderSVG(config) {
             ${defs}
             ${patternOverlay}
             <rect x="0" y="${h - 10}" width="${w}" height="10" fill="${config.accentColor}" />
-            <text x="${mx}%" y="${my}%" text-anchor="middle" dominant-baseline="middle" fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="900" font-size="${config.fontSize}">${config.mainText.toUpperCase()}</text>
-            <text x="${sx}%" y="${sy}%" text-anchor="middle" dominant-baseline="middle" fill="${config.textColor}" font-family="Arial, sans-serif" font-weight="400" font-size="${config.fontSize * 0.4}" opacity="0.8" letter-spacing="2">${config.subText.toUpperCase()}</text>
+            
+            <text x="${mx}%" y="${my}%" text-anchor="middle" dominant-baseline="middle" 
+                  fill="${config.textColor}" font-family="${font}" font-weight="900" 
+                  font-size="${config.fontSize}">
+                ${config.mainText.toUpperCase()}
+            </text>
+            
+            <text x="${sx}%" y="${sy}%" text-anchor="middle" dominant-baseline="middle" 
+                  fill="${config.textColor}" font-family="${font}" font-weight="400" 
+                  font-size="${config.fontSize * 0.4}" opacity="0.8" letter-spacing="2">
+                ${config.subText.toUpperCase()}
+            </text>
         </svg>
     `;
 }
 
 async function saveHeaderConfig() {
     let item = state.items.find(i => i.type === 'header_config');
-    
     if (!item) {
-        item = {
-            type: 'header_config',
-            page: 'all', 
-            position: -99, 
-            content: 'Header Configuration',
-            styles: {},
-            metadata: currentConfig
-        };
+        item = { type: 'header_config', page: 'all', position: -99, content: 'Header Config', styles: {}, metadata: currentConfig };
         state.items.push(item);
     } else {
         item.metadata = currentConfig;
     }
-
     document.dispatchEvent(new Event('app-render-request')); 
     document.getElementById('header-editor-modal').classList.add('hidden');
     
-    // Force immediate DOM update
+    // Force Render
     const headerEl = document.getElementById('super-header');
     if(headerEl) {
         headerEl.innerHTML = generateHeaderSVG(currentConfig);
