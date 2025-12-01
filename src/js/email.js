@@ -1,8 +1,6 @@
 /// src/js/email.js
-
-// 👇 CHANGE THIS LINE
+// Use CDN for robust loading
 import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/+esm';
-
 import { EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, EMAIL_PUBLIC_KEY } from './config.js';
 
 let isInitialized = false;
@@ -16,14 +14,17 @@ export function initEmailConfig() {
 
 export function attachEmailListeners() {
     const form = document.getElementById('embedded-email-form');
+    
+    // Safety checks
     if (!form) return;
     if (form.getAttribute('data-listening') === 'true') return;
     form.setAttribute('data-listening', 'true');
 
     form.addEventListener('submit', (e) => {
+        // 1. STOP PAGE REFRESH (Critical)
         e.preventDefault();
 
-        // 2 Minute Cooldown
+        // 2. Spam Prevention (2 Minute Cooldown)
         const lastSubmit = localStorage.getItem('lastEmailSubmit');
         const now = Date.now();
         const COOLDOWN_MS = 2 * 60 * 1000; 
@@ -32,16 +33,19 @@ export function attachEmailListeners() {
             const timeDiff = now - parseInt(lastSubmit);
             if (timeDiff < COOLDOWN_MS) {
                 const secondsLeft = Math.ceil((COOLDOWN_MS - timeDiff) / 1000);
-                showPopup(`To prevent spam, please wait ${secondsLeft} seconds before sending another message.`);
+                showPopup(`Please wait ${secondsLeft} seconds before sending another message.`);
                 return;
             }
         }
 
+        // 3. UI Feedback (Disable button)
         const btn = form.querySelector('.submit-btn');
         const originalText = btn.innerText;
         btn.innerText = 'Sending...';
         btn.disabled = true;
+        btn.style.opacity = '0.7';
 
+        // 4. Prepare Data
         const templateParams = {
             from_name: form.elements['user_name'].value,
             from_email: form.elements['user_email'].value,
@@ -49,31 +53,46 @@ export function attachEmailListeners() {
             message: form.elements['message'].value
         };
 
+        // 5. Send via EmailJS
         emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, templateParams)
             .then(() => {
-                showPopup('Message successfully sent!');
+                // SUCCESS
+                showPopup('Email sent successfully!');
+                
+                // Save timestamp
                 localStorage.setItem('lastEmailSubmit', Date.now().toString());
+                
+                // Clear form
                 form.reset();
             })
             .catch((err) => {
+                // ERROR
+                console.error("EmailJS Error:", err);
                 showPopup('Error sending email. Please try again later.');
-                console.error(err);
             })
             .finally(() => {
+                // RESTORE BUTTON
                 btn.innerText = originalText;
                 btn.disabled = false;
+                btn.style.opacity = '1';
             });
     });
 }
 
+// Helper to show the green/red toasty
 function showPopup(message) {
     const popup = document.getElementById('toast');
     if (popup) {
         popup.innerText = message;
         popup.classList.remove('hidden');
+        
+        // Ensure styles are reset (in case previous error turned it red)
         popup.style.background = ''; 
+        popup.style.border = ''; 
+
+        // Hide after 4 seconds
         setTimeout(() => popup.classList.add('hidden'), 4000);
     } else {
-        alert(message);
+        alert(message); // Fallback if HTML is missing
     }
 }
