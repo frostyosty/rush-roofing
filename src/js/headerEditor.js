@@ -8,14 +8,10 @@ let currentConfig = {
     accentColor: '#f57c00',
     textColor: '#ffffff',
     pattern: 'none',
-    
-    // Main Text
     mainText: 'RUSH ROOFING',
     mainX: 50, mainY: 45,
-    mainFont: "'Oswald', sans-serif", // Default with quotes
+    mainFont: "'Oswald', sans-serif",
     mainSize: 40,
-
-    // Sub Text
     subText: 'Quality Solutions Bay Wide',
     subX: 50, subY: 70,
     subFont: "Arial, sans-serif",
@@ -26,7 +22,6 @@ export function initHeaderEditor() {
     const btn = document.getElementById('btn-edit-header');
     if (btn) btn.onclick = openHeaderEditor;
 
-    // LIST OF IDs TO WATCH
     const inputs = [
         'header-bg-color', 'header-accent-color', 'header-text-color', 'header-pattern',
         'header-main-text', 'header-main-x', 'header-main-y', 'header-main-font', 'header-main-size',
@@ -36,7 +31,6 @@ export function initHeaderEditor() {
     inputs.forEach(id => {
         const el = document.getElementById(id);
         if(el) {
-            // Bind BOTH input and change to be safe for all browser types
             el.oninput = updatePreview;
             el.onchange = updatePreview; 
         }
@@ -54,7 +48,6 @@ function openHeaderEditor() {
         currentConfig = { ...currentConfig, ...existing.metadata };
     }
 
-    // Populate UI
     // Colors
     document.getElementById('header-bg-color').value = currentConfig.bgColor || '#263238';
     document.getElementById('header-accent-color').value = currentConfig.accentColor || '#f57c00';
@@ -65,7 +58,6 @@ function openHeaderEditor() {
     document.getElementById('header-main-text').value = currentConfig.mainText || '';
     document.getElementById('header-main-x').value = currentConfig.mainX ?? 50;
     document.getElementById('header-main-y').value = currentConfig.mainY ?? 45;
-    // Set Font (Default to Oswald if missing)
     document.getElementById('header-main-font').value = currentConfig.mainFont || "'Oswald', sans-serif";
     document.getElementById('header-main-size').value = currentConfig.mainSize || 40;
 
@@ -73,7 +65,6 @@ function openHeaderEditor() {
     document.getElementById('header-sub-text').value = currentConfig.subText || '';
     document.getElementById('header-sub-x').value = currentConfig.subX ?? 50;
     document.getElementById('header-sub-y').value = currentConfig.subY ?? 70;
-    // Set Font (Default to Arial if missing)
     document.getElementById('header-sub-font').value = currentConfig.subFont || "Arial, sans-serif";
     document.getElementById('header-sub-size').value = currentConfig.subSize || 16;
 
@@ -82,20 +73,17 @@ function openHeaderEditor() {
 }
 
 function updatePreview() {
-    // Globals
     currentConfig.bgColor = document.getElementById('header-bg-color').value;
     currentConfig.accentColor = document.getElementById('header-accent-color').value;
     currentConfig.textColor = document.getElementById('header-text-color').value;
     currentConfig.pattern = document.getElementById('header-pattern').value;
     
-    // Main
     currentConfig.mainText = document.getElementById('header-main-text').value;
     currentConfig.mainX = document.getElementById('header-main-x').value;
     currentConfig.mainY = document.getElementById('header-main-y').value;
     currentConfig.mainFont = document.getElementById('header-main-font').value;
     currentConfig.mainSize = parseInt(document.getElementById('header-main-size').value);
 
-    // Sub
     currentConfig.subText = document.getElementById('header-sub-text').value;
     currentConfig.subX = document.getElementById('header-sub-x').value;
     currentConfig.subY = document.getElementById('header-sub-y').value;
@@ -139,15 +127,16 @@ export function generateHeaderSVG(config) {
             ${patternOverlay}
             <rect x="0" y="${h - 10}" width="${w}" height="10" fill="${config.accentColor}" />
             
+            <!-- CHANGED: Use 'bold' instead of '900' for better compatibility -->
             <text x="${mx}%" y="${my}%" text-anchor="middle" dominant-baseline="middle" 
-                  fill="${config.textColor}" font-family="${mFont}" font-weight="900" 
+                  fill="${config.textColor}" font-family="${mFont}" font-weight="bold" 
                   font-size="${mSize}">
                 ${config.mainText.toUpperCase()}
             </text>
             
             <text x="${sx}%" y="${sy}%" text-anchor="middle" dominant-baseline="middle" 
-                  fill="${config.textColor}" font-family="${sFont}" font-weight="400" 
-                  font-size="${sSize}" letter-spacing="2">
+                  fill="${config.textColor}" font-family="${sFont}" font-weight="normal" 
+                  font-size="${sSize}" letter-spacing="1">
                 ${config.subText.toUpperCase()}
             </text>
         </svg>
@@ -165,7 +154,6 @@ async function saveHeaderConfig() {
     document.dispatchEvent(new Event('app-render-request')); 
     document.getElementById('header-editor-modal').classList.add('hidden');
     
-    // Force Render
     const headerEl = document.getElementById('super-header');
     if(headerEl) {
         headerEl.innerHTML = generateHeaderSVG(currentConfig);
