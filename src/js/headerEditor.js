@@ -8,15 +8,36 @@ let currentConfig = {
     accentColor: '#f57c00',
     textColor: '#ffffff',
     pattern: 'none',
+    
+    // Main Text
     mainText: 'RUSH ROOFING',
     mainX: 50, mainY: 45,
     mainFont: "'Oswald', sans-serif",
     mainSize: 40,
+
+    // Sub Text
     subText: 'Quality Solutions Bay Wide',
     subX: 50, subY: 70,
     subFont: "Arial, sans-serif",
     subSize: 16
 };
+
+// HELPER: Safely set value only if element exists
+function setVal(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.value = value;
+    } else {
+        console.warn(`Header Editor: Missing input #${id} in HTML`);
+    }
+}
+
+// HELPER: Safely get value, or return default
+function getVal(id, fallback) {
+    const el = document.getElementById(id);
+    if (el) return el.value;
+    return fallback;
+}
 
 export function initHeaderEditor() {
     const btn = document.getElementById('btn-edit-header');
@@ -37,7 +58,8 @@ export function initHeaderEditor() {
     });
 
     document.getElementById('btn-save-header').onclick = saveHeaderConfig;
-    document.getElementById('close-header-modal').onclick = () => {
+    const closeBtn = document.getElementById('close-header-modal');
+    if(closeBtn) closeBtn.onclick = () => {
         document.getElementById('header-editor-modal').classList.add('hidden');
     };
 }
@@ -48,50 +70,54 @@ function openHeaderEditor() {
         currentConfig = { ...currentConfig, ...existing.metadata };
     }
 
-    // Colors
-    document.getElementById('header-bg-color').value = currentConfig.bgColor || '#263238';
-    document.getElementById('header-accent-color').value = currentConfig.accentColor || '#f57c00';
-    document.getElementById('header-text-color').value = currentConfig.textColor || '#ffffff';
-    document.getElementById('header-pattern').value = currentConfig.pattern || 'none';
+    // Populate UI (Safely)
+    setVal('header-bg-color', currentConfig.bgColor || '#263238');
+    setVal('header-accent-color', currentConfig.accentColor || '#f57c00');
+    setVal('header-text-color', currentConfig.textColor || '#ffffff');
+    setVal('header-pattern', currentConfig.pattern || 'none');
     
     // Main
-    document.getElementById('header-main-text').value = currentConfig.mainText || '';
-    document.getElementById('header-main-x').value = currentConfig.mainX ?? 50;
-    document.getElementById('header-main-y').value = currentConfig.mainY ?? 45;
-    document.getElementById('header-main-font').value = currentConfig.mainFont || "'Oswald', sans-serif";
-    document.getElementById('header-main-size').value = currentConfig.mainSize || 40;
+    setVal('header-main-text', currentConfig.mainText || '');
+    setVal('header-main-x', currentConfig.mainX ?? 50);
+    setVal('header-main-y', currentConfig.mainY ?? 45);
+    setVal('header-main-font', currentConfig.mainFont || "'Oswald', sans-serif");
+    setVal('header-main-size', currentConfig.mainSize || 40);
 
     // Sub
-    document.getElementById('header-sub-text').value = currentConfig.subText || '';
-    document.getElementById('header-sub-x').value = currentConfig.subX ?? 50;
-    document.getElementById('header-sub-y').value = currentConfig.subY ?? 70;
-    document.getElementById('header-sub-font').value = currentConfig.subFont || "Arial, sans-serif";
-    document.getElementById('header-sub-size').value = currentConfig.subSize || 16;
+    setVal('header-sub-text', currentConfig.subText || '');
+    setVal('header-sub-x', currentConfig.subX ?? 50);
+    setVal('header-sub-y', currentConfig.subY ?? 70);
+    setVal('header-sub-font', currentConfig.subFont || "Arial, sans-serif");
+    setVal('header-sub-size', currentConfig.subSize || 16);
 
     updatePreview();
     document.getElementById('header-editor-modal').classList.remove('hidden');
 }
 
 function updatePreview() {
-    currentConfig.bgColor = document.getElementById('header-bg-color').value;
-    currentConfig.accentColor = document.getElementById('header-accent-color').value;
-    currentConfig.textColor = document.getElementById('header-text-color').value;
-    currentConfig.pattern = document.getElementById('header-pattern').value;
+    // Globals
+    currentConfig.bgColor = getVal('header-bg-color', '#263238');
+    currentConfig.accentColor = getVal('header-accent-color', '#f57c00');
+    currentConfig.textColor = getVal('header-text-color', '#ffffff');
+    currentConfig.pattern = getVal('header-pattern', 'none');
     
-    currentConfig.mainText = document.getElementById('header-main-text').value;
-    currentConfig.mainX = document.getElementById('header-main-x').value;
-    currentConfig.mainY = document.getElementById('header-main-y').value;
-    currentConfig.mainFont = document.getElementById('header-main-font').value;
-    currentConfig.mainSize = parseInt(document.getElementById('header-main-size').value);
+    // Main
+    currentConfig.mainText = getVal('header-main-text', '');
+    currentConfig.mainX = getVal('header-main-x', 50);
+    currentConfig.mainY = getVal('header-main-y', 45);
+    currentConfig.mainFont = getVal('header-main-font', "'Oswald', sans-serif");
+    currentConfig.mainSize = parseInt(getVal('header-main-size', 40));
 
-    currentConfig.subText = document.getElementById('header-sub-text').value;
-    currentConfig.subX = document.getElementById('header-sub-x').value;
-    currentConfig.subY = document.getElementById('header-sub-y').value;
-    currentConfig.subFont = document.getElementById('header-sub-font').value;
-    currentConfig.subSize = parseInt(document.getElementById('header-sub-size').value);
+    // Sub
+    currentConfig.subText = getVal('header-sub-text', '');
+    currentConfig.subX = getVal('header-sub-x', 50);
+    currentConfig.subY = getVal('header-sub-y', 70);
+    currentConfig.subFont = getVal('header-sub-font', "Arial, sans-serif");
+    currentConfig.subSize = parseInt(getVal('header-sub-size', 16));
 
     const svgHTML = generateHeaderSVG(currentConfig);
-    document.getElementById('header-preview-container').innerHTML = svgHTML;
+    const container = document.getElementById('header-preview-container');
+    if (container) container.innerHTML = svgHTML;
 }
 
 export function generateHeaderSVG(config) {
@@ -127,7 +153,6 @@ export function generateHeaderSVG(config) {
             ${patternOverlay}
             <rect x="0" y="${h - 10}" width="${w}" height="10" fill="${config.accentColor}" />
             
-            <!-- CHANGED: Use 'bold' instead of '900' for better compatibility -->
             <text x="${mx}%" y="${my}%" text-anchor="middle" dominant-baseline="middle" 
                   fill="${config.textColor}" font-family="${mFont}" font-weight="bold" 
                   font-size="${mSize}">
