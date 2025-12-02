@@ -35,7 +35,7 @@ export function initToolbar() {
         });
     }
 
-    // 3. Header Editor Button (Rightmost)
+    // 3. Header Editor Button
     if (!document.getElementById('btn-edit-header')) {
         const btn = document.createElement('button');
         btn.id = 'btn-edit-header';
@@ -120,8 +120,7 @@ function renderSectionsTable() {
 
     // Page Options
     const uniquePages = new Set(state.items.map(i => i.page || 'home'));
-    // Update Page List
-    ['home', 'services', 'testimonials', 'contact'].forEach(p => uniquePages.add(p));
+    ['home', 'services', 'gallery', 'contact'].forEach(p => uniquePages.add(p));
     const pageOptions = Array.from(uniquePages).sort();
 
     sortedItems.forEach(item => {
@@ -134,8 +133,8 @@ function renderSectionsTable() {
         
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.content || '';
-        let text = tempDiv.innerText.substring(0, 30) + '...';
-        if (item.type === 'gallery') text = '<b>[Gallery/Slider]</b>';
+        let text = tempDiv.innerText.substring(0, 40) + '...';
+        if (item.type === 'gallery') text = '<b>[Gallery]</b>'; // Was carousel
         if (item.type === 'map') text = '<b>[Map]</b>';
         if (item.type === 'notepad') text = '<b>[Notepad]</b>';
         if (item.type === 'alert') text = '<b style="color:orange">[ALERT]</b> ' + text;
@@ -147,12 +146,12 @@ function renderSectionsTable() {
             optionsHtml += `<option value="${p}" ${isSelected}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>`;
         });
         
-        const pageSelect = `<select class="page-select" data-idx="${realIndex}" style="padding:8px; width:100px; border-radius:4px; border:1px solid #ccc;">${optionsHtml}</select>`;
+        const pageSelect = `<select class="page-select" data-idx="${realIndex}" style="padding:5px; width:100px; border-radius:4px; border:1px solid #ccc;">${optionsHtml}</select>`;
         const posInput = `<input type="number" class="pos-input" data-idx="${realIndex}" value="${item.position || 0}" style="width:50px; padding:5px;">`;
-         const actions = `
-            <div style="display:flex; justify-content:flex-end; gap:5px;">
-                <!-- MUTE BUTTON -->
-                <button class="mute-btn" data-idx="${realIndex}" style="color:${item.muted ? 'orange' : '#aaa'}; background:none; border:none; cursor:pointer; font-size:1.1rem;">
+        
+        const actions = `
+            <div style="display:flex; justify-content:center; gap:8px;">
+                <button class="mute-btn" data-idx="${realIndex}" style="color:${item.muted ? 'orange' : '#ccc'}; background:none; border:none; cursor:pointer; font-size:1.1rem;">
                     <i class="fas ${item.muted ? 'fa-eye-slash' : 'fa-eye'}"></i>
                 </button>
                 <button class="edit-row-btn" data-idx="${realIndex}" style="color:#2196f3; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fas fa-pen"></i></button>
@@ -160,8 +159,13 @@ function renderSectionsTable() {
             </div>
         `;
 
-        
-        tr.innerHTML = `<td style="padding:10px; font-size:0.9rem;">${text}</td><td style="padding:10px;">${pageSelect}</td><td style="padding:10px;">${posInput}</td><td style="padding:10px;">${actions}</td>`;
+        // 👇 NEW COLUMN ORDER: Content, Actions, Page, Pos
+        tr.innerHTML = `
+            <td style="padding:10px; font-size:0.9rem;">${text}</td>
+            <td style="padding:10px;">${actions}</td>
+            <td style="padding:10px;">${pageSelect}</td>
+            <td style="padding:10px;">${posInput}</td>
+        `;
         tbody.appendChild(tr);
     });
 
@@ -171,22 +175,8 @@ function renderSectionsTable() {
 function attachTableListeners() {
     document.querySelectorAll('.page-select').forEach(el => { el.addEventListener('change', (e) => { const index = e.target.getAttribute('data-idx'); state.items[index].page = e.target.value; triggerOptimisticUpdate(); renderSectionsTable(); }); });
     document.querySelectorAll('.pos-input').forEach(el => { el.addEventListener('change', (e) => { const index = e.target.getAttribute('data-idx'); state.items[index].position = parseInt(e.target.value); triggerOptimisticUpdate(); }); });
-    document.querySelectorAll('.del-btn').forEach(el => { el.addEventListener('click', (e) => { const index = e.target.closest('.del-btn').getAttribute('data-idx'); state.items.splice(index, 1); renderSectionsTable(); triggerOptimisticUpdate(); }); });
     
-    // EDIT LOGIC
-    document.querySelectorAll('.edit-row-btn').forEach(el => {
-        el.addEventListener('click', async (e) => {
-            const index = e.target.closest('.edit-row-btn').getAttribute('data-idx');
-            const item = state.items[index];
-            if (item.type === 'gallery') { openImageManager(index); }
-            else if (item.type === 'map') { const newCode = await ask("Paste Google Maps Embed HTML:"); if (newCode && newCode.includes('<iframe')) { item.content = newCode; triggerOptimisticUpdate(); } }
-            else if (item.type === 'notepad') { alert("Notepad cannot be edited globally."); }
-            else { editingIndex = index; document.getElementById('visual-editor').innerHTML = item.content || ''; document.getElementById('edit-content-modal').classList.remove('hidden'); }
-        });
-    });
-
-
-     // MUTE TOGGLE
+    // MUTE
     document.querySelectorAll('.mute-btn').forEach(el => {
         el.addEventListener('click', (e) => {
             const index = e.target.closest('.mute-btn').getAttribute('data-idx');
@@ -195,8 +185,44 @@ function attachTableListeners() {
             renderSectionsTable();
         });
     });
+
+    // DELETE
+    document.querySelectorAll('.del-btn').forEach(el => { 
+        el.addEventListener('click', (e) => { 
+            const index = e.target.closest('.del-btn').getAttribute('data-idx'); 
+            state.items.splice(index, 1); 
+            renderSectionsTable(); 
+            triggerOptimisticUpdate(); 
+        }); 
+    });
+    
+    // EDIT
+    document.querySelectorAll('.edit-row-btn').forEach(el => {
+        el.addEventListener('click', async (e) => {
+            const index = e.target.closest('.edit-row-btn').getAttribute('data-idx');
+            const item = state.items[index];
+
+            if (item.type === 'gallery' || item.type === 'carousel') {
+                openImageManager(index);
+            } else if (item.type === 'map') {
+                const newCode = await ask("Paste Google Maps Embed HTML:");
+                if (newCode && newCode.includes('<iframe')) {
+                    item.content = newCode;
+                    triggerOptimisticUpdate();
+                }
+            } else if (item.type === 'notepad') {
+                alert("Notepad content is local to your device.");
+            } else {
+                // RICH TEXT EDITOR
+                editingIndex = index;
+                document.getElementById('visual-editor').innerHTML = item.content || '';
+                document.getElementById('edit-content-modal').classList.remove('hidden');
+            }
+        });
+    });
 }
 
+// ... (Rest of file: setupRichTextEditor, saveContentEdit, addNewPage, etc... KEEP AS IS) ...
 function setupRichTextEditor() {
     document.querySelectorAll('.editor-btn[data-cmd]').forEach(btn => { btn.addEventListener('click', (e) => { e.preventDefault(); document.execCommand(btn.getAttribute('data-cmd'), false, null); document.getElementById('visual-editor').focus(); }); });
     document.getElementById('editor-format').addEventListener('change', (e) => { document.execCommand('formatBlock', false, e.target.value); document.getElementById('visual-editor').focus(); });
@@ -204,12 +230,32 @@ function setupRichTextEditor() {
 }
 
 function saveContentEdit() {
-    if (editingIndex !== null) { state.items[editingIndex].content = document.getElementById('visual-editor').innerHTML; triggerOptimisticUpdate(); document.getElementById('edit-content-modal').classList.add('hidden'); renderSectionsTable(); }
+    if (editingIndex !== null) {
+        const newContent = document.getElementById('visual-editor').innerHTML;
+        state.items[editingIndex].content = newContent;
+        triggerOptimisticUpdate();
+        document.getElementById('edit-content-modal').classList.add('hidden');
+        renderSectionsTable(); 
+    }
 }
 
-async function addNewPage() { const name = await ask("Enter Page Name:"); if (!name) return; state.items.push({ type: 'header', page: name.toLowerCase().replace(/\s/g, '-'), position: 0, content: `<h3>${name.toUpperCase()}</h3>`, styles: { padding: "30px", background: "white", borderRadius: "8px", textAlign: "center" } }); renderSectionsTable(); triggerOptimisticUpdate(); }
-function addNewSection() { state.items.push({ type: 'section', page: state.currentPage || 'home', position: 99, content: `<h4>New Section</h4><p>Edit me...</p>`, styles: { padding: "20px", background: "white", borderRadius: "5px", maxWidth: "800px" } }); renderSectionsTable(); triggerOptimisticUpdate(); }
-function addNewNotepad() { const newItem = { type: 'notepad', page: state.currentPage || 'home', position: 99, content: '', styles: { padding: "10px", margin: "20px auto", maxWidth: "600px", background: "transparent" } }; state.items.push(newItem); renderSectionsTable(); triggerOptimisticUpdate(); }
+async function addNewPage() {
+    const name = await ask("Enter Page Name (e.g. Gallery):");
+    if (!name) return;
+    state.items.push({ type: 'header', page: name.toLowerCase().replace(/\s/g, '-'), position: 0, content: `<h3>${name.toUpperCase()}</h3>`, styles: { padding: "30px", background: "white", borderRadius: "8px", textAlign: "center" } });
+    renderSectionsTable(); triggerOptimisticUpdate();
+}
+
+function addNewSection() {
+    state.items.push({ type: 'section', page: state.currentPage || 'home', position: 99, content: `<h4>New Section</h4><p>Edit me...</p>`, styles: { padding: "20px", background: "white", borderRadius: "5px", maxWidth: "800px" } });
+    renderSectionsTable(); triggerOptimisticUpdate();
+}
+
+function addNewNotepad() {
+    const newItem = { type: 'notepad', page: state.currentPage || 'home', position: 99, content: '', styles: { padding: "10px", margin: "20px auto", maxWidth: "600px", background: "transparent" } };
+    state.items.push(newItem); renderSectionsTable(); triggerOptimisticUpdate();
+}
+
 function triggerOptimisticUpdate() { render(); document.dispatchEvent(new Event('app-render-request')); }
 
 function setupHistory() {

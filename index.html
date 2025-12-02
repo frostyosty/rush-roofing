@@ -164,27 +164,29 @@
         <div class="modal-content"
             style="max-width: 900px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
 
-            <!-- Header -->
+            <!-- Header Toolbar (Buttons + Close X) -->
             <div
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:15px;">
-                <h3 style="margin:0; color:#2e7d32;">Manage Sections</h3>
-
-                <!-- Mobile Friendly Close Button -->
-                <button id="close-sections"
-                    style="background:transparent; border:none; font-size:2rem; cursor:pointer; color:#666; padding:0 15px;">&times;</button>
-            </div>
-
-            <!-- Buttons -->
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
-                <button id="btn-add-page"
-                    style="background:#4caf50; color:white; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; flex:1;"><i
-                        class="fas fa-folder-plus"></i> Page</button>
+                style="display:flex; align-items:center; margin-bottom:15px; gap:10px; border-bottom:1px solid #eee; padding-bottom:15px;">
+                <!-- Reordered Buttons: Section, Page, Note -->
                 <button id="btn-add-section"
-                    style="background:#2e7d32; color:white; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; flex:1;"><i
-                        class="fas fa-plus-circle"></i> Section</button>
+                    style="background:#2e7d32; color:white; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-plus-circle"></i> Section
+                </button>
+                <button id="btn-add-page"
+                    style="background:#4caf50; color:white; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-folder-plus"></i> Page
+                </button>
                 <button id="btn-add-notepad"
-                    style="background:#fbc02d; color:black; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; flex:1;"><i
-                        class="fas fa-sticky-note"></i> Note</button>
+                    style="background:#fbc02d; color:black; border:none; padding:10px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-sticky-note"></i> Note
+                </button>
+
+                <!-- Spacer to push X to the right -->
+                <div style="flex:1;"></div>
+
+                <!-- Close Button -->
+                <button id="close-sections"
+                    style="background:transparent; border:none; font-size:2rem; cursor:pointer; color:#666; line-height:1;">&times;</button>
             </div>
 
             <!-- Table (Scrollable area) -->
@@ -192,10 +194,11 @@
                 <table id="sections-table" style="width:100%; border-collapse: collapse;">
                     <thead style="position:sticky; top:0; background:#f4f4f4; z-index:1;">
                         <tr style="text-align:left;">
+                            <!-- Reordered Columns: Content, Actions, Page, Pos -->
                             <th style="padding:10px;">Content</th>
-                            <th style="padding:10px;">Page</th>
-                            <th style="padding:10px;">Pos</th>
-                            <th style="padding:10px; text-align:right;">Actions</th>
+                            <th style="padding:10px; width:100px; text-align:center;">Actions</th>
+                            <th style="padding:10px; width:120px;">Page</th>
+                            <th style="padding:10px; width:70px;">Pos</th>
                         </tr>
                     </thead>
                     <tbody id="sections-list"></tbody>
