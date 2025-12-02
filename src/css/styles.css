@@ -1419,3 +1419,59 @@ input[type="color"]::-webkit-color-swatch { border: none; }
         justify-content: center;
     }
 }
+
+
+/* --- MOBILE SCROLL FIXES (Add to bottom of styles.css) --- */
+
+/* 1. Main Navigation Bar */
+@media (max-width: 768px) {
+    .main-nav {
+        /* Force alignment to left so first item isn't cut off */
+        justify-content: flex-start !important; 
+        
+        /* Enable sideways scrolling */
+        overflow-x: auto !important;
+        white-space: nowrap !important; /* Keep items on one line */
+        
+        /* Smooth scrolling on iPhone */
+        -webkit-overflow-scrolling: touch; 
+        width: 100%;
+    }
+
+    .nav-btn {
+        /* Stop buttons from squishing */
+        flex: 0 0 auto !important; 
+        
+        /* Add breathing room for touch targets */
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    /* Hide the scrollbar for a cleaner look */
+    .main-nav::-webkit-scrollbar { display: none; }
+}
+
+/* 2. Dev Toolbar / Settings */
+.toolbar-actions {
+    /* Align left to prevent first button disappearing */
+    justify-content: flex-start !important; 
+    
+    /* Enable Scroll */
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    max-width: 100vw; /* Ensure it fits screen width */
+    
+    /* Smooth scroll */
+    -webkit-overflow-scrolling: touch;
+    
+    /* Small padding for touch area */
+    padding-bottom: 5px;
+}
+
+.toolbar-actions button {
+    /* Ensure buttons stay full width and don't shrink */
+    flex-shrink: 0 !important; 
+}
+
+/* Hide scrollbar */
+.toolbar-actions::-webkit-scrollbar { display: none; }
