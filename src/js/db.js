@@ -3,7 +3,6 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import { notifyAdminOfChange } from './security.js';
 
-// 👇 FIX: Added "export" here so imageManager.js can use it
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TABLE_CONTENT = 'rush_roofing_content';
@@ -30,13 +29,16 @@ export async function saveContent(items) {
             content: item.content,
             styles: item.styles || {},
             position: item.position || 0,
-            page: item.page || 'home'
+            page: item.page || 'home',
+            // 👇 NEW: Include the muted status
+            muted: item.muted || false 
         };
+        
         // Keep ID if it exists and is valid
         if (item.id && typeof item.id === 'number') {
             clean.id = item.id;
         }
-        // If metadata exists (e.g. image list), keep it
+        // Keep metadata (Images, Header Config)
         if (item.metadata) {
             clean.metadata = item.metadata;
         }
@@ -50,10 +52,8 @@ export async function saveContent(items) {
         if (error) console.warn('History save warning:', error.message);
     });
 
-    // 3. DELETE MISSING ITEMS (Fix for "Zombie Pages")
-    const activeIds = payload
-        .filter(i => i.id) 
-        .map(i => i.id);
+    // 3. DELETE MISSING ITEMS
+    const activeIds = payload.filter(i => i.id).map(i => i.id);
 
     if (activeIds.length > 0) {
         const { error: deleteError } = await supabase
@@ -70,31 +70,25 @@ export async function saveContent(items) {
     let freshData = [];
 
     try {
-        // Operation A: Update existing items
         if (toUpdate.length > 0) {
             const { data: updatedData, error: updateError } = await supabase
                 .from(TABLE_CONTENT)
                 .upsert(toUpdate)
                 .select();
-            
             if (updateError) throw updateError;
             freshData = [...freshData, ...updatedData];
         }
 
-        // Operation B: Insert new items
         if (toInsert.length > 0) {
             const { data: insertedData, error: insertError } = await supabase
                 .from(TABLE_CONTENT)
                 .insert(toInsert)
                 .select();
-            
             if (insertError) throw insertError;
             freshData = [...freshData, ...insertedData];
         }
 
-        // 5. SUCCESS: Trigger Security Alert
         notifyAdminOfChange();
-
         return freshData;
 
     } catch (error) {
