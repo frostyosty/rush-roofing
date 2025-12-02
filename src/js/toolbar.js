@@ -133,8 +133,8 @@ function renderSectionsTable() {
         
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.content || '';
-        let text = tempDiv.innerText.substring(0, 40) + '...';
-        if (item.type === 'gallery') text = '<b>[Gallery]</b>'; // Was carousel
+        let text = tempDiv.innerText.substring(0, 30) + '...';
+        if (item.type === 'gallery') text = '<b>[Gallery]</b>';
         if (item.type === 'map') text = '<b>[Map]</b>';
         if (item.type === 'notepad') text = '<b>[Notepad]</b>';
         if (item.type === 'alert') text = '<b style="color:orange">[ALERT]</b> ' + text;
@@ -146,9 +146,8 @@ function renderSectionsTable() {
             optionsHtml += `<option value="${p}" ${isSelected}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>`;
         });
         
-        const pageSelect = `<select class="page-select" data-idx="${realIndex}" style="padding:5px; width:100px; border-radius:4px; border:1px solid #ccc;">${optionsHtml}</select>`;
+        const pageSelect = `<select class="page-select" data-idx="${realIndex}" style="padding:8px; width:100px; border-radius:4px; border:1px solid #ccc;">${optionsHtml}</select>`;
         const posInput = `<input type="number" class="pos-input" data-idx="${realIndex}" value="${item.position || 0}" style="width:50px; padding:5px;">`;
-        
         const actions = `
             <div style="display:flex; justify-content:center; gap:8px;">
                 <button class="mute-btn" data-idx="${realIndex}" style="color:${item.muted ? 'orange' : '#ccc'}; background:none; border:none; cursor:pointer; font-size:1.1rem;">
@@ -159,13 +158,7 @@ function renderSectionsTable() {
             </div>
         `;
 
-        // 👇 NEW COLUMN ORDER: Content, Actions, Page, Pos
-        tr.innerHTML = `
-            <td style="padding:10px; font-size:0.9rem;">${text}</td>
-            <td style="padding:10px;">${actions}</td>
-            <td style="padding:10px;">${pageSelect}</td>
-            <td style="padding:10px;">${posInput}</td>
-        `;
+        tr.innerHTML = `<td style="padding:10px; font-size:0.9rem;">${text}</td><td style="padding:10px;">${actions}</td><td style="padding:10px;">${pageSelect}</td><td style="padding:10px;">${posInput}</td>`;
         tbody.appendChild(tr);
     });
 
@@ -222,7 +215,6 @@ function attachTableListeners() {
     });
 }
 
-// ... (Rest of file: setupRichTextEditor, saveContentEdit, addNewPage, etc... KEEP AS IS) ...
 function setupRichTextEditor() {
     document.querySelectorAll('.editor-btn[data-cmd]').forEach(btn => { btn.addEventListener('click', (e) => { e.preventDefault(); document.execCommand(btn.getAttribute('data-cmd'), false, null); document.getElementById('visual-editor').focus(); }); });
     document.getElementById('editor-format').addEventListener('change', (e) => { document.execCommand('formatBlock', false, e.target.value); document.getElementById('visual-editor').focus(); });
@@ -239,43 +231,111 @@ function saveContentEdit() {
     }
 }
 
-async function addNewPage() {
-    const name = await ask("Enter Page Name (e.g. Gallery):");
-    if (!name) return;
-    state.items.push({ type: 'header', page: name.toLowerCase().replace(/\s/g, '-'), position: 0, content: `<h3>${name.toUpperCase()}</h3>`, styles: { padding: "30px", background: "white", borderRadius: "8px", textAlign: "center" } });
-    renderSectionsTable(); triggerOptimisticUpdate();
-}
-
-function addNewSection() {
-    state.items.push({ type: 'section', page: state.currentPage || 'home', position: 99, content: `<h4>New Section</h4><p>Edit me...</p>`, styles: { padding: "20px", background: "white", borderRadius: "5px", maxWidth: "800px" } });
-    renderSectionsTable(); triggerOptimisticUpdate();
-}
-
-function addNewNotepad() {
-    const newItem = { type: 'notepad', page: state.currentPage || 'home', position: 99, content: '', styles: { padding: "10px", margin: "20px auto", maxWidth: "600px", background: "transparent" } };
-    state.items.push(newItem); renderSectionsTable(); triggerOptimisticUpdate();
-}
-
+async function addNewPage() { const name = await ask("Enter Page Name:"); if (!name) return; state.items.push({ type: 'header', page: name.toLowerCase().replace(/\s/g, '-'), position: 0, content: `<h3>${name.toUpperCase()}</h3>`, styles: { padding: "30px", background: "white", borderRadius: "8px", textAlign: "center" } }); renderSectionsTable(); triggerOptimisticUpdate(); }
+function addNewSection() { state.items.push({ type: 'section', page: state.currentPage || 'home', position: 99, content: `<h4>New Section</h4><p>Edit me...</p>`, styles: { padding: "20px", background: "white", borderRadius: "5px", maxWidth: "800px" } }); renderSectionsTable(); triggerOptimisticUpdate(); }
+function addNewNotepad() { const newItem = { type: 'notepad', page: state.currentPage || 'home', position: 99, content: '', styles: { padding: "10px", margin: "20px auto", maxWidth: "600px", background: "transparent" } }; state.items.push(newItem); renderSectionsTable(); triggerOptimisticUpdate(); }
 function triggerOptimisticUpdate() { render(); document.dispatchEvent(new Event('app-render-request')); }
 
+// --- SMART HISTORY LOGIC (With Diffing) ---
 function setupHistory() {
     const modal = document.getElementById('history-modal');
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+    
+    // 1. Click Outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+
+    // 2. Footer Close
+    document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+
+    // 3. Header X Button (This was missing logic before)
+    const closeX = document.getElementById('close-history-x');
+    if (closeX) closeX.addEventListener('click', () => modal.classList.add('hidden'));
+
+    // 4. Show History
     document.getElementById('btn-restore').addEventListener('click', async () => {
         const history = await fetchHistory();
-        const list = document.getElementById('history-list'); list.innerHTML = '';
-        history.forEach(h => {
-            let preview = 'Empty';
-            if (h.snapshot && h.snapshot.length > 0) {
-                const types = h.snapshot.map(i => { if (i.content) { const div = document.createElement('div'); div.innerHTML = i.content; const cleanText = div.innerText.replace(/\n/g, ' ').substring(0, 15).trim(); if (cleanText) return cleanText; } return i.type.charAt(0).toUpperCase() + i.type.slice(1); });
-                preview = types.slice(0, 5).join(', ') + (types.length > 5 ? '...' : '');
-            }
-            const li = document.createElement('li'); li.style.fontSize = '0.9rem';
-            li.innerHTML = `<div style="display:flex; justify-content:space-between;"><strong>${new Date(h.created_at).toLocaleTimeString()}</strong><span style="color:#666; font-size:0.8rem;">ID: ${h.id}</span></div><div style="color:#2e7d32; font-style:italic;">Contains: ${preview}</div>`;
-            li.onclick = async () => { if(confirm('Restore?')) { await restoreSnapshot(h.snapshot); setItems(h.snapshot); render(); modal.classList.add('hidden'); } };
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        
+        history.forEach((h, index) => {
+            const prevSnapshot = history[index + 1]?.snapshot || [];
+            const currSnapshot = h.snapshot || [];
+            
+            // Generate summary
+            let summary = generateDiffSummary(currSnapshot, prevSnapshot);
+            if (index === history.length - 1) summary = "Baseline / Oldest Backup";
+
+            const li = document.createElement('li');
+            li.style.fontSize = '0.9rem';
+            li.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${new Date(h.created_at).toLocaleTimeString()}</strong>
+                    <span style="color:#666; font-size:0.8rem;">ID: ${h.id}</span>
+                </div>
+                <div style="color:#2e7d32; font-style:italic; margin-top:4px; font-weight:500;">
+                    ${summary}
+                </div>
+            `;
+            
+            li.onclick = async () => { 
+                if(confirm('Restore this version?')) { 
+                    await restoreSnapshot(h.snapshot); 
+                    setItems(h.snapshot); 
+                    render(); 
+                    modal.classList.add('hidden'); 
+                } 
+            };
             list.appendChild(li);
         });
         modal.classList.remove('hidden');
     });
-    document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+}
+
+function generateDiffSummary(current, previous) {
+    if (!previous || previous.length === 0) return "Initial Load / Reset";
+    
+    const changes = [];
+    let changeCount = 0;
+
+    // 1. Check for Edits & Moves
+    current.forEach(curr => {
+        const prev = previous.find(p => p.id === curr.id);
+        if (!prev) {
+            changes.push(`Added <b>${getLabel(curr)}</b>`);
+            changeCount++;
+        } else if (JSON.stringify(curr) !== JSON.stringify(prev)) {
+            changeCount++;
+            if (curr.content !== prev.content) changes.push(`Edited <b>${getLabel(curr)}</b>`);
+            else if (curr.position !== prev.position) changes.push(`Moved <b>${getLabel(curr)}</b>`);
+            else if (curr.muted !== prev.muted) changes.push(`Muted/Unmuted <b>${getLabel(curr)}</b>`);
+            else changes.push(`Modified <b>${getLabel(curr)}</b>`);
+        }
+    });
+
+    // 2. Check for Deletes
+    previous.forEach(prev => {
+        if (!current.find(c => c.id === prev.id)) {
+            changes.push(`Deleted <b>${getLabel(prev)}</b>`);
+            changeCount++;
+        }
+    });
+
+    if (changeCount === 0) return "No visible changes";
+    if (changeCount > 4) return `${changeCount} items changed (Mass Edit)`;
+    
+    return [...new Set(changes)].slice(0, 4).join(", ");
+}
+
+function getLabel(item) {
+    if (item.type === 'alert') return "Alert";
+    if (item.type === 'map') return "Map";
+    if (item.type === 'gallery') return "Gallery";
+    if (item.content) {
+        const div = document.createElement('div');
+        div.innerHTML = item.content;
+        const text = div.innerText.replace(/\n/g, ' ').substring(0, 15).trim();
+        if (text) return text;
+    }
+    return item.type.charAt(0).toUpperCase() + item.type.slice(1);
 }
