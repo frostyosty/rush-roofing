@@ -12,13 +12,13 @@ let currentConfig = {
     // Main Text
     mainText: 'RUSH ROOFING',
     mainX: 50, mainY: 45,
-    mainFont: 'Oswald, sans-serif',
+    mainFont: "'Oswald', sans-serif", // Default with quotes
     mainSize: 40,
 
     // Sub Text
     subText: 'Quality Solutions Bay Wide',
     subX: 50, subY: 70,
-    subFont: 'Arial, sans-serif',
+    subFont: "Arial, sans-serif",
     subSize: 16
 };
 
@@ -26,6 +26,7 @@ export function initHeaderEditor() {
     const btn = document.getElementById('btn-edit-header');
     if (btn) btn.onclick = openHeaderEditor;
 
+    // LIST OF IDs TO WATCH
     const inputs = [
         'header-bg-color', 'header-accent-color', 'header-text-color', 'header-pattern',
         'header-main-text', 'header-main-x', 'header-main-y', 'header-main-font', 'header-main-size',
@@ -34,7 +35,11 @@ export function initHeaderEditor() {
 
     inputs.forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.oninput = updatePreview;
+        if(el) {
+            // Bind BOTH input and change to be safe for all browser types
+            el.oninput = updatePreview;
+            el.onchange = updatePreview; 
+        }
     });
 
     document.getElementById('btn-save-header').onclick = saveHeaderConfig;
@@ -49,24 +54,27 @@ function openHeaderEditor() {
         currentConfig = { ...currentConfig, ...existing.metadata };
     }
 
-    // Colors & Pattern
+    // Populate UI
+    // Colors
     document.getElementById('header-bg-color').value = currentConfig.bgColor || '#263238';
     document.getElementById('header-accent-color').value = currentConfig.accentColor || '#f57c00';
     document.getElementById('header-text-color').value = currentConfig.textColor || '#ffffff';
     document.getElementById('header-pattern').value = currentConfig.pattern || 'none';
     
-    // Main Text
+    // Main
     document.getElementById('header-main-text').value = currentConfig.mainText || '';
     document.getElementById('header-main-x').value = currentConfig.mainX ?? 50;
     document.getElementById('header-main-y').value = currentConfig.mainY ?? 45;
-    document.getElementById('header-main-font').value = currentConfig.mainFont || 'Oswald, sans-serif';
+    // Set Font (Default to Oswald if missing)
+    document.getElementById('header-main-font').value = currentConfig.mainFont || "'Oswald', sans-serif";
     document.getElementById('header-main-size').value = currentConfig.mainSize || 40;
 
-    // Sub Text
+    // Sub
     document.getElementById('header-sub-text').value = currentConfig.subText || '';
     document.getElementById('header-sub-x').value = currentConfig.subX ?? 50;
     document.getElementById('header-sub-y').value = currentConfig.subY ?? 70;
-    document.getElementById('header-sub-font').value = currentConfig.subFont || 'Arial, sans-serif';
+    // Set Font (Default to Arial if missing)
+    document.getElementById('header-sub-font').value = currentConfig.subFont || "Arial, sans-serif";
     document.getElementById('header-sub-size').value = currentConfig.subSize || 16;
 
     updatePreview();
@@ -104,12 +112,12 @@ export function generateHeaderSVG(config) {
     
     const mx = config.mainX ?? 50;
     const my = config.mainY ?? 45;
-    const mFont = config.mainFont || 'Oswald, sans-serif';
+    const mFont = config.mainFont || "'Oswald', sans-serif";
     const mSize = config.mainSize || 40;
 
     const sx = config.subX ?? 50;
     const sy = config.subY ?? 70;
-    const sFont = config.subFont || 'Arial, sans-serif';
+    const sFont = config.subFont || "Arial, sans-serif";
     const sSize = config.subSize || 16;
     
     let defs = '';
@@ -157,8 +165,11 @@ async function saveHeaderConfig() {
     document.dispatchEvent(new Event('app-render-request')); 
     document.getElementById('header-editor-modal').classList.add('hidden');
     
+    // Force Render
     const headerEl = document.getElementById('super-header');
     if(headerEl) {
         headerEl.innerHTML = generateHeaderSVG(currentConfig);
+        headerEl.style.padding = '0';
+        headerEl.style.borderBottom = 'none';
     }
 }
