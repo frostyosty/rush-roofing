@@ -59,7 +59,16 @@ export function render() {
             // We render empty div, gallery.js injects content later
             el.innerHTML = item.content || '';
         }
+        // MUTE CHECK
+        if (item.muted) {
+            if (!state.isDevMode) return; // Hide from public
+        }
 
+
+        // Add ghost class if muted
+        if (item.muted && state.isDevMode) {
+            el.classList.add('muted-item');
+        }
         Object.assign(el.style, item.styles);
 
         // Find the REAL index in the main state array

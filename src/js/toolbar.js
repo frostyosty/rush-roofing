@@ -149,13 +149,18 @@ function renderSectionsTable() {
         
         const pageSelect = `<select class="page-select" data-idx="${realIndex}" style="padding:8px; width:100px; border-radius:4px; border:1px solid #ccc;">${optionsHtml}</select>`;
         const posInput = `<input type="number" class="pos-input" data-idx="${realIndex}" value="${item.position || 0}" style="width:50px; padding:5px;">`;
-        const actions = `
+         const actions = `
             <div style="display:flex; justify-content:flex-end; gap:5px;">
+                <!-- MUTE BUTTON -->
+                <button class="mute-btn" data-idx="${realIndex}" style="color:${item.muted ? 'orange' : '#aaa'}; background:none; border:none; cursor:pointer; font-size:1.1rem;">
+                    <i class="fas ${item.muted ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                </button>
                 <button class="edit-row-btn" data-idx="${realIndex}" style="color:#2196f3; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fas fa-pen"></i></button>
                 <button class="del-btn" data-idx="${realIndex}" style="color:red; background:none; border:none; cursor:pointer; font-size:1.1rem;"><i class="fas fa-trash"></i></button>
             </div>
         `;
 
+        
         tr.innerHTML = `<td style="padding:10px; font-size:0.9rem;">${text}</td><td style="padding:10px;">${pageSelect}</td><td style="padding:10px;">${posInput}</td><td style="padding:10px;">${actions}</td>`;
         tbody.appendChild(tr);
     });
@@ -177,6 +182,17 @@ function attachTableListeners() {
             else if (item.type === 'map') { const newCode = await ask("Paste Google Maps Embed HTML:"); if (newCode && newCode.includes('<iframe')) { item.content = newCode; triggerOptimisticUpdate(); } }
             else if (item.type === 'notepad') { alert("Notepad cannot be edited globally."); }
             else { editingIndex = index; document.getElementById('visual-editor').innerHTML = item.content || ''; document.getElementById('edit-content-modal').classList.remove('hidden'); }
+        });
+    });
+
+
+     // MUTE TOGGLE
+    document.querySelectorAll('.mute-btn').forEach(el => {
+        el.addEventListener('click', (e) => {
+            const index = e.target.closest('.mute-btn').getAttribute('data-idx');
+            state.items[index].muted = !state.items[index].muted;
+            triggerOptimisticUpdate();
+            renderSectionsTable();
         });
     });
 }

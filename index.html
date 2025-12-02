@@ -389,6 +389,7 @@
         </div>
     </div>
 
+
     <!-- Header Editor Modal -->
     <div id="header-editor-modal" class="modal hidden" style="z-index: 9000;">
         <div class="modal-content"
@@ -399,7 +400,7 @@
                     style="background:transparent; border:none; font-size:1.5rem;">&times;</button>
             </div>
 
-            <!-- Preview Area (Fixed height) -->
+            <!-- Preview Area -->
             <div id="header-preview-container"
                 style="width:100%; border:1px solid #ccc; margin-bottom:20px; background:#eee;">
                 <!-- SVG renders here -->
@@ -409,12 +410,11 @@
             <div style="flex:1; overflow-y:auto; padding-right:5px;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
 
-                    <!-- Colors -->
-                    <label>Background <input type="color" id="header-bg-color"></label>
-                    <label>Accent <input type="color" id="header-accent-color"></label>
-                    <label>Text Color <input type="color" id="header-text-color"></label>
+                    <!-- GLOBAL SETTINGS -->
+                    <label>Background <input type="color" id="header-bg-color" style="width:100%;"></label>
+                    <label>Accent <input type="color" id="header-accent-color" style="width:100%;"></label>
+                    <label>Text Color <input type="color" id="header-text-color" style="width:100%;"></label>
 
-                    <!-- Pattern -->
                     <label>Pattern
                         <select id="header-pattern"
                             style="width:100%; padding:10px; border-radius:4px; border:1px solid #ccc;">
@@ -424,40 +424,50 @@
                         </select>
                     </label>
 
-                    <!-- NEW: Font Family -->
-                    <label style="grid-column: span 2;">Font Style
-                        <select id="header-font-family"
-                            style="width:100%; padding:10px; border-radius:4px; border:1px solid #ccc;">
-                            <option value="Arial, sans-serif">Standard (Arial)</option>
-                            <option value="'Oswald', sans-serif">Industrial (Oswald)</option>
-                            <option value="'Roboto Slab', serif">Heavy Slab (Roboto)</option>
-                            <option value="'Anton', sans-serif">Impact (Anton)</option>
-                            <option value="'Shadows Into Light', cursive">Handwritten (Tweed Style)</option>
-                        </select>
-                    </label>
+                    <!-- !!! THIS WAS MISSING IN PREVIOUS STEP !!! -->
+                    <!-- Global Font Size (Optional if Main/Sub have their own sizes, but good for base scaling) -->
+                    <!-- If you removed it from JS, you can remove it here. But if JS looks for it, keep it hidden or present. -->
+                    <!-- We removed it from JS logic in favor of specific Main/Sub sizes, so we remove it here to avoid confusion. -->
 
-                    <!-- Font Size -->
-                    <label style="grid-column: span 2;">Size
-                        <input type="range" id="header-font-size" min="20" max="120" style="width:100%;">
-                    </label>
-
-                    <hr style="grid-column: span 2; width:100%; border:0; border-top:1px solid #eee; margin:10px 0;">
-
-                    <!-- MAIN TEXT CONTROLS -->
+                    <!-- MAIN HEADING -->
+                    <hr style="grid-column: span 2; width:100%; border:0; border-top:2px solid #ddd; margin:10px 0;">
                     <label style="grid-column: span 2; font-weight:bold; color:#2e7d32;">Main Heading</label>
+
                     <input type="text" id="header-main-text"
                         style="grid-column: span 2; padding:10px; border:1px solid #ccc;">
 
+                    <label>Font
+                        <select id="header-main-font"
+                            style="width:100%; padding:10px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="'Oswald', sans-serif">Industrial (Oswald)</option>
+                            <option value="'Roboto Slab', serif">Heavy (Roboto)</option>
+                            <option value="'Anton', sans-serif">Impact (Anton)</option>
+                            <option value="'Lato', sans-serif">Clean (Lato)</option>
+                            <option value="'Montserrat', sans-serif">Modern (Montserrat)</option>
+                            <option value="Arial, sans-serif">Standard (Arial)</option>
+                        </select>
+                    </label>
+                    <label>Size <input type="range" id="header-main-size" min="20" max="150"></label>
                     <label>Move X <input type="range" id="header-main-x" min="0" max="100"></label>
                     <label>Move Y <input type="range" id="header-main-y" min="0" max="100"></label>
 
-                    <hr style="grid-column: span 2; width:100%; border:0; border-top:1px solid #eee; margin:10px 0;">
-
-                    <!-- SUB TEXT CONTROLS -->
+                    <!-- SUB HEADING -->
+                    <hr style="grid-column: span 2; width:100%; border:0; border-top:2px solid #ddd; margin:10px 0;">
                     <label style="grid-column: span 2; font-weight:bold; color:#2e7d32;">Sub Heading</label>
+
                     <input type="text" id="header-sub-text"
                         style="grid-column: span 2; padding:10px; border:1px solid #ccc;">
 
+                    <label>Font
+                        <select id="header-sub-font"
+                            style="width:100%; padding:10px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="Arial, sans-serif">Standard (Arial)</option>
+                            <option value="'Open Sans', sans-serif">Readable (Open Sans)</option>
+                            <option value="'Lato', sans-serif">Clean (Lato)</option>
+                            <option value="'Montserrat', sans-serif">Modern (Montserrat)</option>
+                        </select>
+                    </label>
+                    <label>Size <input type="range" id="header-sub-size" min="10" max="80"></label>
                     <label>Move X <input type="range" id="header-sub-x" min="0" max="100"></label>
                     <label>Move Y <input type="range" id="header-sub-y" min="0" max="100"></label>
 
