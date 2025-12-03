@@ -1475,3 +1475,31 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 
 /* Hide scrollbar */
 .toolbar-actions::-webkit-scrollbar { display: none; }
+
+
+/* --- MOBILE KEYBOARD FIXES --- */
+
+/* 1. Use Dynamic Height for Modals 
+   'dvh' accounts for the address bar and virtual keyboard shrinking the screen. */
+.modal {
+    height: 100dvh !important; 
+    
+    /* Allow the modal container itself to scroll if the keyboard covers content */
+    overflow-y: auto !important; 
+    align-items: flex-start !important; /* Stop trying to center vertically */
+    padding-top: 5vh; /* Add spacing at top instead of centering */
+}
+
+/* 2. Prevent "Jump/Zoom" on Focus */
+/* Browsers zoom in if text is < 16px. We force 16px on mobile inputs. */
+@media screen and (max-width: 768px) {
+    input, textarea, select {
+        font-size: 16px !important;
+    }
+    
+    /* 3. Make the modal content flexible */
+    .modal-content {
+        max-height: 85dvh !important; /* Leave room for keyboard */
+        margin-bottom: 50vh !important; /* Extra scroll space at bottom */
+    }
+}
