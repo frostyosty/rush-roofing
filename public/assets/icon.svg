@@ -1,12 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Slate Grey Circle Background -->
+  <!-- 1. Background Circle (Slate Grey) -->
   <circle cx="256" cy="256" r="256" fill="#37474f"/>
   
-  <!-- Safety Orange Border (Inner) -->
-  <circle cx="256" cy="256" r="230" fill="none" stroke="#f57c00" stroke-width="30"/>
+  <!-- 2. Border (Safety Orange) - Made slightly thicker for contrast -->
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#f57c00" stroke-width="40"/>
   
-  <!-- The "R" -->
+  <!-- 3. The "R" (Pure White) -->
   <text x="50%" y="50%" text-anchor="middle" dy=".35em" 
         font-family="Arial, sans-serif" font-weight="900" font-size="320" 
         fill="#ffffff">R</text>
+
+  <!-- 4. The "Anime Shine" (Top Right Glint) -->
+  <!-- A soft, semi-transparent white oval -->
+  <ellipse cx="380" cy="130" rx="80" ry="40" 
+           transform="rotate(45 380 130)" 
+           fill="#ffffff" fill-opacity="0.4"/>
+           
+  <!-- A smaller, sharper dot to sell the reflection effect -->
+  <circle cx="310" cy="180" r="15" fill="#ffffff" fill-opacity="0.7"/>
 </svg>
