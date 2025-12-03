@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Slate Grey Circle Background -->
+  <circle cx="256" cy="256" r="256" fill="#37474f"/>
+  
+  <!-- Safety Orange Border (Inner) -->
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#f57c00" stroke-width="30"/>
+  
+  <!-- The "R" -->
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em" 
+        font-family="Arial, sans-serif" font-weight="900" font-size="320" 
+        fill="#ffffff">R</text>
+</svg>
