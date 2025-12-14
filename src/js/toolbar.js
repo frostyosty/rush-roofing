@@ -239,57 +239,70 @@ function triggerOptimisticUpdate() { render(); document.dispatchEvent(new Event(
 // --- SMART HISTORY LOGIC (With Diffing) ---
 function setupHistory() {
     const modal = document.getElementById('history-modal');
+    const restoreBtn = document.getElementById('btn-restore');
     
-    // 1. Click Outside
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.add('hidden');
-    });
+    if (!modal) return;
 
-    // 2. Footer Close
-    document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+    // 1. Unified Click Handler (Event Delegation)
+    // This handles the Grey Background, The X Button, and the Footer Close Button
+    modal.onclick = (e) => {
+        // If clicking the grey background
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            return;
+        }
 
-    // 3. Header X Button (This was missing logic before)
-    const closeX = document.getElementById('close-history-x');
-    if (closeX) closeX.addEventListener('click', () => modal.classList.add('hidden'));
+        // If clicking the "X" or "Close" button (handles clicking icons inside buttons too)
+        if (e.target.closest('#close-history-x') || e.target.closest('#btn-close-modal')) {
+            modal.classList.add('hidden');
+            return;
+        }
+    };
 
-    // 4. Show History
-    document.getElementById('btn-restore').addEventListener('click', async () => {
-        const history = await fetchHistory();
-        const list = document.getElementById('history-list');
-        list.innerHTML = '';
-        
-        history.forEach((h, index) => {
-            const prevSnapshot = history[index + 1]?.snapshot || [];
-            const currSnapshot = h.snapshot || [];
+    // 2. Open History Logic
+    if (restoreBtn) {
+        // Remove old listeners by cloning the button (Clean Slate)
+        const newBtn = restoreBtn.cloneNode(true);
+        restoreBtn.parentNode.replaceChild(newBtn, restoreBtn);
+
+        newBtn.addEventListener('click', async () => {
+            const history = await fetchHistory();
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
             
-            // Generate summary
-            let summary = generateDiffSummary(currSnapshot, prevSnapshot);
-            if (index === history.length - 1) summary = "Baseline / Oldest Backup";
+            history.forEach((h, index) => {
+                const prevSnapshot = history[index + 1]?.snapshot || [];
+                const currSnapshot = h.snapshot || [];
+                
+                // Generate summary
+                let summary = generateDiffSummary(currSnapshot, prevSnapshot);
+                if (index === history.length - 1) summary = "Baseline / Oldest Backup";
 
-            const li = document.createElement('li');
-            li.style.fontSize = '0.9rem';
-            li.innerHTML = `
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${new Date(h.created_at).toLocaleTimeString()}</strong>
-                    <span style="color:#666; font-size:0.8rem;">ID: ${h.id}</span>
-                </div>
-                <div style="color:#2e7d32; font-style:italic; margin-top:4px; font-weight:500;">
-                    ${summary}
-                </div>
-            `;
-            
-            li.onclick = async () => { 
-                if(confirm('Restore this version?')) { 
-                    await restoreSnapshot(h.snapshot); 
-                    setItems(h.snapshot); 
-                    render(); 
-                    modal.classList.add('hidden'); 
-                } 
-            };
-            list.appendChild(li);
+                const li = document.createElement('li');
+                li.style.fontSize = '0.9rem';
+                li.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${new Date(h.created_at).toLocaleTimeString()}</strong>
+                        <span style="color:#666; font-size:0.8rem;">ID: ${h.id}</span>
+                    </div>
+                    <div style="color:#2e7d32; font-style:italic; margin-top:4px; font-weight:500;">
+                        ${summary}
+                    </div>
+                `;
+                
+                li.onclick = async () => { 
+                    if(confirm('Restore this version?')) { 
+                        await restoreSnapshot(h.snapshot); 
+                        setItems(h.snapshot); 
+                        render(); 
+                        modal.classList.add('hidden'); 
+                    } 
+                };
+                list.appendChild(li);
+            });
+            modal.classList.remove('hidden');
         });
-        modal.classList.remove('hidden');
-    });
+    }
 }
 
 function generateDiffSummary(current, previous) {
