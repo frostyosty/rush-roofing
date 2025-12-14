@@ -19,6 +19,7 @@ const nzstDate = new Date(buildTimestamp).toLocaleString('en-NZ', {
 export default defineConfig({
   define: {
     '__BUILD_TIMESTAMP__': JSON.stringify(nzstDate),
+    global: 'window',
   },
   build: {
     outDir: 'dist',
